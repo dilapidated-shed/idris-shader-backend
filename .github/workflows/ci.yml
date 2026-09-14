@@ -17,8 +17,7 @@ env:
 
 jobs:
   idris-to-glsl:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, linux, debian]
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Check out source
@@ -34,9 +33,9 @@ jobs:
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/.idris2
-          key: idris2-${{ runner.os }}-${{ runner.arch }}-${{ env.IDRIS2_VERSION }}-self-hosted-api-v1
+          key: idris2-${{ runner.os }}-${{ runner.arch }}-${{ env.IDRIS2_VERSION }}-ubuntu-api-v1
 
-      - name: Build self-hosted Idris 2 and compiler API
+      - name: Build Idris 2 and compiler API
         if: steps.idris-cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch "v${IDRIS2_VERSION}" \
