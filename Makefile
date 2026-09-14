@@ -6,7 +6,7 @@ GLES_LIBS ?= -lGLESv3
 
 .PHONY: build backend generate generate-compiler test backend-test check clean \
 	powervr-primitives powervr-primitives-frag powervr-primitives-host \
-	powervr-phone-accept powervr-termux-accept
+	powervr-phone-accept
 
 build:
 	$(IDRIS2) --build idris-glsl-es.ipkg
@@ -51,9 +51,6 @@ powervr-primitives: powervr-primitives-frag powervr-primitives-host
 
 powervr-phone-accept:
 	sh tools/accept_powervr_phone.sh
-
-powervr-termux-accept:
-	sh tools/accept_powervr_termux.sh
 
 test:
 	$(IDRIS2) --build tests.ipkg
