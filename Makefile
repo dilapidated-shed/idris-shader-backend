@@ -63,6 +63,7 @@ backend-test: backend
 	python3 tools/check_surfer_root_search.py
 	python3 tools/check_powervr_primitives.py
 	sh -n tools/accept_powervr_phone.sh
+	sh -n tools/accept_powervr_termux.sh
 
 check: generate test backend-test
 	python3 tools/check_glsl.py generated/fullscreen.vert generated/sphere.frag \
