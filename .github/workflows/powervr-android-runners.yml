@@ -3,7 +3,7 @@ name: PowerVR Android runners
 on:
   push:
     branches:
-      - powervr-hello-x
+      - target/powervr-ge8322-gles
   workflow_dispatch:
 
 permissions:
@@ -72,7 +72,7 @@ jobs:
               -lEGL -lGLESv3 -lm
             "$toolchain/llvm-strip" "$stage/libexec/powervr-primitives"
 
-            cp tools/accept_powervr_termux.sh "$stage/bin/powervr-accept"
+            cp tools/accept_powervr_android.sh "$stage/bin/powervr-accept"
             chmod 0755 "$stage/bin/powervr-accept" "$stage/libexec/powervr-primitives"
 
             printf '%s\n' "$GITHUB_SHA" > "$stage/share/powervr/source-commit"
