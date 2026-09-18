@@ -5,8 +5,20 @@ GETPROP=${GETPROP:-/system/bin/getprop}
 TOYBOX=${TOYBOX:-/system/bin/toybox}
 READLINK=${READLINK:-/system/bin/readlink}
 
+if [ -t 1 ]; then
+  CYAN=$(printf '\033[1;36m')
+  GREEN=$(printf '\033[1;32m')
+  RED=$(printf '\033[1;31m')
+  RESET=$(printf '\033[0m')
+else
+  CYAN=
+  GREEN=
+  RED=
+  RESET=
+fi
+
 fail() {
-  echo "PowerVR packaged acceptance: $*" >&2
+  printf '%sFAIL%s  Android GLES packaged acceptance: %s\n' "$RED" "$RESET" "$*" >&2
   exit 1
 }
 
@@ -92,7 +104,7 @@ else
 fi
 
 {
-  echo "idris-shader-backend PowerVR Android acceptance"
+  echo "idris-shader-backend Android GLES acceptance"
   echo "command: powervr-accept"
   echo "execution: prebuilt Cat Food Android package"
   echo "utc: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
@@ -129,10 +141,24 @@ for identity in '^EGL [0-9]+\.[0-9]+$' '^GL_VENDOR: .+' '^GL_RENDERER: .+' \
   }
 done
 
-grep_q -Eiq '^GL_(VENDOR|RENDERER):.*(PowerVR|Imagination)' "$RECEIPT_TMP" >/dev/null || {
-  cat "$EVIDENCE"
-  fail "GL_VENDOR/GL_RENDERER does not identify PowerVR/Imagination; evidence saved to $EVIDENCE"
-}
+case "$PACKAGE_TARGET" in
+  phone)
+    grep_q -Eiq '^GL_(VENDOR|RENDERER):.*(PowerVR|Imagination)' "$RECEIPT_TMP" >/dev/null || {
+      cat "$EVIDENCE"
+      fail "phone GL_VENDOR/GL_RENDERER does not identify PowerVR/Imagination; evidence saved to $EVIDENCE"
+    }
+    ;;
+  tablet)
+    grep_q -Eq '^GL_VENDOR: ARM$' "$RECEIPT_TMP" >/dev/null || {
+      cat "$EVIDENCE"
+      fail "tablet GL_VENDOR does not identify ARM; evidence saved to $EVIDENCE"
+    }
+    grep_q -Eq '^GL_RENDERER: Mali-G57([[:space:]].*)?$' "$RECEIPT_TMP" >/dev/null || {
+      cat "$EVIDENCE"
+      fail "tablet GL_RENDERER does not identify Mali-G57; evidence saved to $EVIDENCE"
+    }
+    ;;
+esac
 
 COMPILE_LINK_COUNT=$(grep_count '^[1-6] shader_compile_link: PASS' "$RECEIPT_TMP")
 [ "$COMPILE_LINK_COUNT" -eq 6 ] || {
@@ -155,4 +181,4 @@ TIMING_COUNT=$(grep_count '^  (4x1 pixel-selection draw:|32x32 block-fill draw:|
 
 printf '\nacceptance.generated_blobs: PASS\nacceptance.renderer: PASS\nacceptance.compile_link: 6/6 PASS\nacceptance.framebuffers: 6/6 PASS\nacceptance: PASS\n' >>"$EVIDENCE"
 cat "$EVIDENCE"
-printf '\nPowerVR packaged acceptance: PASS\nevidence: %s\n' "$EVIDENCE"
+printf '\n%sPASS%s  Android GLES packaged acceptance\nevidence: %s\n' "$GREEN" "$RESET" "$EVIDENCE"

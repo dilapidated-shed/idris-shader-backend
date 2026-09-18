@@ -64,6 +64,7 @@ backend-test: backend
 	python3 tools/check_powervr_primitives.py
 	sh -n tools/accept_powervr_phone.sh
 	sh -n tools/accept_powervr_android.sh
+	sh tools/test_accept_powervr_android.sh
 
 check: generate test backend-test
 	python3 tools/check_glsl.py generated/fullscreen.vert generated/sphere.frag \
