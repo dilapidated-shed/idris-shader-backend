@@ -67,6 +67,64 @@ selectedFloatPrecision width values = case directiveValue "float-precision=" val
   Just "" => Left "float-precision directive requires lowp, mediump, or highp"
   Just value => Left ("float-precision must be lowp, mediump, or highp, received " ++ value)
 
+requireSingleShaderExport : List (Name, String) -> Core (Name, String)
+requireSingleShaderExport [] =
+  backendError "no shader entry; add %export \"glsles:fragment|name=in,name=uniform\""
+requireSingleShaderExport [entry] = pure entry
+requireSingleShaderExport entries =
+  backendError ("expected one glsles export, received " ++ show (length entries))
+
+record ExportedShader where
+  constructor MkExportedShader
+  shaderEntryName : Name
+  shaderExportAnnotation : String
+  shaderDefinitions : ShaderDefs
+
+prepareExportedShader : Ref Ctxt Defs -> ClosedTerm -> Core ExportedShader
+prepareExportedShader defs term = do
+  compilation <- getCompileDataWith {c = defs} ["glsles"] False ANF term
+  (resolvedName, annotation) <- requireSingleShaderExport (exported compilation)
+  entryName <- toFullNames resolvedName
+  pure (MkExportedShader entryName annotation (anf compilation))
+
+checkShaderInterface : Ref Ctxt Defs -> ExportedShader -> Core EntrySpec
+checkShaderInterface defs shader = do
+  raw <- fromEither (parseRawEntry (shaderExportAnnotation shader))
+  signature <- entryType {c = defs} (shaderEntryName shader)
+  (argumentTypes, resultType) <- fromEither (shaderSignature signature)
+  fromEither (makeEntrySpec raw argumentTypes resultType)
+
+lowerExportedShader : EntrySpec -> ExportedShader -> Core FragmentProgram
+lowerExportedShader spec shader = do
+  let entryName = shaderEntryName shader
+  let definitions = shaderDefinitions shader
+  Just definition <- pure (findANF entryName definitions)
+    | Nothing => backendError ("could not find ANF for exported entry " ++ show entryName)
+  fromEither (lowerFragment spec entryName definitions definition)
+
+writeRequestedIR : List String -> FloatWidth -> FragmentProgram -> Core ()
+writeRequestedIR requestedDirectives width program =
+  case directiveValue "dump-ir=" requestedDirectives of
+    Nothing => pure ()
+    Just "" => backendError "dump-ir directive requires a path"
+    Just path => do
+      renderedIR <- fromEither (dumpFragmentIRWithWidth width program)
+      writeShader path renderedIR
+
+writeFragmentOutput :
+  List String ->
+  FloatWidth ->
+  String ->
+  String ->
+  FragmentProgram ->
+  Core String
+writeFragmentOutput requestedDirectives width outputDir outfile program = do
+  precision <- fromEither (selectedFloatPrecision width requestedDirectives)
+  source <- fromEither (emitFragmentWithPrecision precision program)
+  let output = outputDir ++ "/" ++ outfile ++ ".frag"
+  writeShader output source
+  pure output
+
 public export
 compileGLSLES :
   Ref Ctxt Defs ->
@@ -74,32 +132,14 @@ compileGLSLES :
   (tmpDir : String) -> (outputDir : String) ->
   ClosedTerm -> (outfile : String) -> Core (Maybe String)
 compileGLSLES defs syn tmpDir outputDir term outfile = do
-  cdata <- getCompileDataWith ["glsles"] False ANF term
-  (resolvedName, annotation) <- case exported cdata of
-    [] => backendError "no shader entry; add %export \"glsles:fragment|name=in,name=uniform\""
-    [entry] => pure entry
-    entries => backendError ("expected one glsles export, received " ++ show (length entries))
-  entryName <- toFullNames resolvedName
-  raw <- fromEither (parseRawEntry annotation)
-  signature <- entryType entryName
-  (argumentTypes, resultType) <- fromEither (shaderSignature signature)
-  spec <- fromEither (makeEntrySpec raw argumentTypes resultType)
-  Just definition <- pure (findANF entryName (anf cdata))
-    | Nothing => backendError ("could not find ANF for exported entry " ++ show entryName)
-  program <- fromEither (lowerFragment spec entryName (anf cdata) definition)
-  session <- getSession
+  shader <- prepareExportedShader defs term
+  spec <- checkShaderInterface defs shader
+  program <- lowerExportedShader spec shader
+  session <- getSession {c = defs}
   let requestedDirectives = directives session
   width <- fromEither (selectedFloatWidth requestedDirectives)
-  case directiveValue "dump-ir=" requestedDirectives of
-    Nothing => pure ()
-    Just "" => backendError "dump-ir directive requires a path"
-    Just path => do
-      renderedIR <- fromEither (dumpFragmentIRWithWidth width program)
-      writeShader path renderedIR
-  precision <- fromEither (selectedFloatPrecision width requestedDirectives)
-  source <- fromEither (emitFragmentWithPrecision precision program)
-  let output = outputDir ++ "/" ++ outfile ++ ".frag"
-  writeShader output source
+  writeRequestedIR requestedDirectives width program
+  output <- writeFragmentOutput requestedDirectives width outputDir outfile program
   pure (Just output)
 
 public export
