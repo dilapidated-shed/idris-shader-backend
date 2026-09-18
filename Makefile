@@ -2,6 +2,9 @@ IDRIS2 ?= idris2
 IDRIS2_GLSLES ?= ./build/exec/idris2-glsles
 IDRIS2_MALI_MOCK ?= ./build/exec/idris2-mali-mock
 IDRIS2_FRAGMENT_MOCKS ?= ./build/exec/idris2-fragment-mocks
+CC ?= cc
+EGL_LIBS ?= -lEGL
+GLES_LIBS ?= -lGLESv3
 
 FRAGMENT_MOCK_TARGETS = \
 	powervr-ge8322-mock \
@@ -14,7 +17,9 @@ FRAGMENT_MOCK_TARGETS = \
 	nvidia-blackwell-sm100-mock \
 	adreno-tile-mock
 
-.PHONY: build backend mali-mock fragment-mocks generate generate-compiler test backend-test mali-mock-test fragment-mock-test check clean
+.PHONY: build backend mali-mock fragment-mocks generate generate-compiler test backend-test mali-mock-test fragment-mock-test check clean \
+	powervr-primitives powervr-primitives-frag powervr-primitives-host \
+	powervr-phone-accept
 
 build:
 	$(IDRIS2) --build idris-glsl-es.ipkg
@@ -42,6 +47,30 @@ generate-compiler: backend
 		--source-dir src --output-dir generated \
 		src/Example/DiscReveal.idr -o disc-reveal
 
+powervr-primitives-frag: backend
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/SetPixel3RGB5239182.idr -o set-pixel-3-rgb-52-39-182
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/SetBlock32x32RGB5239182.idr -o set-block-32x32-rgb-52-39-182
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/DotVector4Covector4.idr -o dot-vector4-covector4
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/DotVector32Covector32.idr -o dot-vector32-covector32
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/SubtractVector8Norm.idr -o subtract-vector8-norm
+	$(IDRIS2_GLSLES) --cg glsles --source-dir src --output-dir generated \
+		src/Example/RotateDifference8ToE1.idr -o rotate-difference8-to-e1
+
+powervr-primitives-host:
+	mkdir -p build
+	$(CC) -std=c11 -O2 -Wall -Wextra tools/powervr_primitives.c \
+		-o build/powervr-primitives $(EGL_LIBS) $(GLES_LIBS) -lm
+
+powervr-primitives: powervr-primitives-frag powervr-primitives-host
+
+powervr-phone-accept:
+	sh tools/accept_powervr_phone.sh
+
 test:
 	$(IDRIS2) --build tests.ipkg
 	./build/exec/idris-glsl-es-tests
@@ -52,6 +81,10 @@ backend-test: backend
 	python3 tools/check_shared_factor_portrait.py
 	python3 tools/check_analytic_continuation.py
 	python3 tools/check_surfer_root_search.py
+	python3 tools/check_powervr_primitives.py
+	sh -n tools/accept_powervr_phone.sh
+	sh -n tools/accept_powervr_android.sh
+	sh tools/test_accept_powervr_android.sh
 
 mali-mock-test: mali-mock
 	$(IDRIS2_MALI_MOCK) --cg mali-mock \
@@ -74,7 +107,7 @@ fragment-mock-test: fragment-mocks
 	done
 	python3 tools/check_fragment_mocks.py /tmp/idris-fragment-mocks
 
-check: generate test backend-test mali-mock-test fragment-mock-test
+check: generate test backend-test mali-mock-test fragment-mock-test powervr-primitives-frag
 	python3 tools/check_glsl.py generated/fullscreen.vert generated/sphere.frag \
 		generated/compiler-sphere.frag generated/disc-reveal.frag
 
