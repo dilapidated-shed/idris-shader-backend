@@ -33,13 +33,18 @@ void main() {
   vec4 _idris_t22 = (_idris_t19 * _idris_t15);
   vec4 _idris_t23 = (_idris_t1 - _idris_t22);
   bool _idris_t24 = (_idris_t11 > 1e-6);
-  float _idris_t25 = _idris_t21.x;
-  float _idris_t26 = _idris_t21.y;
-  float _idris_t27 = (0.0 - _idris_t26);
-  float _idris_t28 = _idris_t21.z;
-  float _idris_t29 = _idris_t21.w;
-  vec4 _idris_t30 = vec4(_idris_t25, _idris_t27, _idris_t28, _idris_t29);
-  vec4 _idris_t31 = (_idris_t24 ? _idris_t30 : _idris_t21);
+  vec4 _idris_t31;
+  if (_idris_t24) {
+    float _idris_t25 = _idris_t21.x;
+    float _idris_t26 = _idris_t21.y;
+    float _idris_t27 = (0.0 - _idris_t26);
+    float _idris_t28 = _idris_t21.z;
+    float _idris_t29 = _idris_t21.w;
+    vec4 _idris_t30 = vec4(_idris_t25, _idris_t27, _idris_t28, _idris_t29);
+    _idris_t31 = _idris_t30;
+  } else {
+    _idris_t31 = _idris_t21;
+  }
   float _idris_t32 = _idris_t31.y;
   float _idris_t33 = _idris_t31.z;
   float _idris_t34 = _idris_t31.w;
