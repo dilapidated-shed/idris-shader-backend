@@ -6,7 +6,7 @@ TOYBOX=${TOYBOX:-/system/bin/toybox}
 READLINK=${READLINK:-/system/bin/readlink}
 
 fail() {
-  echo "PowerVR packaged acceptance: $*" >&2
+  echo "Android GLES packaged acceptance: $*" >&2
   exit 1
 }
 
@@ -92,7 +92,7 @@ else
 fi
 
 {
-  echo "idris-shader-backend PowerVR Android acceptance"
+  echo "idris-shader-backend Android GLES acceptance"
   echo "command: powervr-accept"
   echo "execution: prebuilt Cat Food Android package"
   echo "utc: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
@@ -169,4 +169,4 @@ TIMING_COUNT=$(grep_count '^  (4x1 pixel-selection draw:|32x32 block-fill draw:|
 
 printf '\nacceptance.generated_blobs: PASS\nacceptance.renderer: PASS\nacceptance.compile_link: 6/6 PASS\nacceptance.framebuffers: 6/6 PASS\nacceptance: PASS\n' >>"$EVIDENCE"
 cat "$EVIDENCE"
-printf '\nPowerVR packaged acceptance: PASS\nevidence: %s\n' "$EVIDENCE"
+printf '\nAndroid GLES packaged acceptance: PASS\nevidence: %s\n' "$EVIDENCE"
