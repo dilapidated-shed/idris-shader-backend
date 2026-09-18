@@ -22,11 +22,15 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes chezscheme glslang-tools libgmp-dev
+          sudo apt-get install --yes \
+            chezscheme glslang-tools libgmp-dev \
+            libegl1-mesa-dev libgles2-mesa-dev
 
       - name: Restore Idris 2 compiler and API
         id: idris-cache
@@ -56,6 +60,11 @@ jobs:
 
       - name: Run complete backend checks
         run: make check
+
+      - name: Execute Android GLES framebuffer probes under Mesa
+        run: |
+          make powervr-primitives GLES_LIBS=-lGLESv2
+          EGL_PLATFORM=surfaceless ./build/powervr-primitives
 
       - name: Reject uncommitted generated output
         run: git diff --exit-code -- generated
