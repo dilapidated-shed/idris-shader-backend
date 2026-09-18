@@ -52,6 +52,7 @@ backend-test: backend
 	python3 tools/check_shared_factor_portrait.py
 	python3 tools/check_analytic_continuation.py
 	python3 tools/check_surfer_root_search.py
+	python3 tools/check_complex_projective_follower.py
 
 mali-mock-test: mali-mock
 	$(IDRIS2_MALI_MOCK) --cg mali-mock \
