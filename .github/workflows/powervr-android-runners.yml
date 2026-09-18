@@ -47,6 +47,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          source_sha=$(git rev-parse HEAD)
 
           ndk="${ANDROID_HOME}/ndk/${NDK_VERSION}"
           toolchain="$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin"
@@ -80,14 +81,14 @@ jobs:
             cp tools/accept_powervr_android.sh "$stage/bin/powervr-accept"
             chmod 0755 "$stage/bin/powervr-accept" "$stage/libexec/powervr-primitives"
 
-            printf '%s\n' "$GITHUB_SHA" > "$stage/share/powervr/source-commit"
+            printf '%s\n' "$source_sha" > "$stage/share/powervr/source-commit"
             printf '%s\n' "$target" > "$stage/share/powervr/package-target"
             printf '%s\n' "$abi" > "$stage/share/powervr/package-abi"
             : > "$stage/share/powervr/shader-blobs.txt"
 
             for shader in "${shaders[@]}"; do
               path="generated/$shader"
-              expected_blob=$(git rev-parse "$GITHUB_SHA:$path")
+              expected_blob=$(git rev-parse "$source_sha:$path")
               actual_blob=$(git hash-object "$path")
               test "$actual_blob" = "$expected_blob"
               printf 'shader.blob: %s %s\n' "$actual_blob" "$path" \
@@ -141,8 +142,8 @@ jobs:
           else
             gh release create "$tag" "${assets[@]}" \
               --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" \
+              --target "$source_sha" \
               --prerelease \
               --title "PowerVR Android runners $short" \
-              --notes "Cloud-cross-compiled Android acceptance runners for exact source commit $GITHUB_SHA. Phone and tablet are runtime consumers; this release is packaging evidence, not physical PowerVR execution evidence."
+              --notes "Cloud-cross-compiled Android acceptance runners for exact source commit $source_sha. Phone and tablet are runtime consumers; this release is packaging evidence, not physical PowerVR execution evidence."
           fi
