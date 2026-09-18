@@ -122,7 +122,10 @@ def main() -> int:
         rotate8 = shaders["rotate-difference8-to-e1"]
         require(rotate8.count("sqrt(") >= 3, "8D rotation lost norm/residual square roots")
         require(rotate8.count("dot(") >= 6, "8D rotation lost vectorized Householder products")
-        require(\n            " ? " in rotate8 or ("  if (" in rotate8 and "  } else {" in rotate8),\n            "8D rotation lost the already-aligned identity conditional",\n        )
+        require(
+            " ? " in rotate8 or ("  if (" in rotate8 and "  } else {" in rotate8),
+            "8D rotation lost the already-aligned identity conditional",
+        )
         require("vec3(" in rotate8, "8D rotation lost the seven-coordinate residual reduction")
 
     print("PowerVR primitive checks passed: pixel, block, dot4, dot32, subtract8, rotate8")
