@@ -128,7 +128,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          short=${GITHUB_SHA:0:12}
+          source_sha=$(git rev-parse HEAD)
+          short=${source_sha:0:12}
           tag="powervr-android-$short"
           assets=(
             dist/powervr-runner-phone-armeabi-v7a.tar.gz
