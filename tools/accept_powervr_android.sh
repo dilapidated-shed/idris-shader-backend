@@ -5,8 +5,20 @@ GETPROP=${GETPROP:-/system/bin/getprop}
 TOYBOX=${TOYBOX:-/system/bin/toybox}
 READLINK=${READLINK:-/system/bin/readlink}
 
+if [ -t 1 ]; then
+  CYAN=$(printf '\033[1;36m')
+  GREEN=$(printf '\033[1;32m')
+  RED=$(printf '\033[1;31m')
+  RESET=$(printf '\033[0m')
+else
+  CYAN=
+  GREEN=
+  RED=
+  RESET=
+fi
+
 fail() {
-  echo "Android GLES packaged acceptance: $*" >&2
+  printf '%sFAIL%s  Android GLES packaged acceptance: %s\n' "$RED" "$RESET" "$*" >&2
   exit 1
 }
 
@@ -169,4 +181,4 @@ TIMING_COUNT=$(grep_count '^  (4x1 pixel-selection draw:|32x32 block-fill draw:|
 
 printf '\nacceptance.generated_blobs: PASS\nacceptance.renderer: PASS\nacceptance.compile_link: 6/6 PASS\nacceptance.framebuffers: 6/6 PASS\nacceptance: PASS\n' >>"$EVIDENCE"
 cat "$EVIDENCE"
-printf '\nAndroid GLES packaged acceptance: PASS\nevidence: %s\n' "$EVIDENCE"
+printf '\n%sPASS%s  Android GLES packaged acceptance\nevidence: %s\n' "$GREEN" "$RESET" "$EVIDENCE"
