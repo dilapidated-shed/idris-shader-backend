@@ -52,9 +52,15 @@ directiveValue needle (value :: rest) =
      then Just (pack (drop (length (unpack needle)) (unpack value)))
      else directiveValue needle rest
 
-floatPrecision : List String -> Either String ShaderPrecision
-floatPrecision values = case directiveValue "float-precision=" values of
-  Nothing => Right (shaderPrecision defaultFloatWidth)
+selectedFloatWidth : List String -> Either String FloatWidth
+selectedFloatWidth values = case directiveValue "float-width=" values of
+  Nothing => Right defaultFloatWidth
+  Just "" => Left "float-width directive requires f16 or f32"
+  Just value => parseFloatWidth value
+
+selectedFloatPrecision : FloatWidth -> List String -> Either String ShaderPrecision
+selectedFloatPrecision width values = case directiveValue "float-precision=" values of
+  Nothing => Right (shaderPrecision width)
   Just "lowp" => Right Low
   Just "mediump" => Right Medium
   Just "highp" => Right High
@@ -96,20 +102,24 @@ lowerExportedShader spec shader = do
     | Nothing => backendError ("could not find ANF for exported entry " ++ show entryName)
   fromEither (lowerFragment spec entryName definitions definition)
 
-writeRequestedIR : Ref Ctxt Defs -> FragmentProgram -> Core ()
-writeRequestedIR defs program = do
-  session <- getSession {c = defs}
-  case directiveValue "dump-ir=" (directives session) of
+writeRequestedIR : List String -> FloatWidth -> FragmentProgram -> Core ()
+writeRequestedIR requestedDirectives width program =
+  case directiveValue "dump-ir=" requestedDirectives of
     Nothing => pure ()
     Just "" => backendError "dump-ir directive requires a path"
     Just path => do
-      renderedIR <- fromEither (dumpFragmentIR program)
+      renderedIR <- fromEither (dumpFragmentIRWithWidth width program)
       writeShader path renderedIR
 
-writeFragmentOutput : Ref Ctxt Defs -> String -> String -> FragmentProgram -> Core String
-writeFragmentOutput defs outputDir outfile program = do
-  session <- getSession {c = defs}
-  precision <- fromEither (floatPrecision (directives session))
+writeFragmentOutput :
+  List String ->
+  FloatWidth ->
+  String ->
+  String ->
+  FragmentProgram ->
+  Core String
+writeFragmentOutput requestedDirectives width outputDir outfile program = do
+  precision <- fromEither (selectedFloatPrecision width requestedDirectives)
   source <- fromEither (emitFragmentWithPrecision precision program)
   let output = outputDir ++ "/" ++ outfile ++ ".frag"
   writeShader output source
@@ -125,8 +135,11 @@ compileGLSLES defs syn tmpDir outputDir term outfile = do
   shader <- prepareExportedShader defs term
   spec <- checkShaderInterface defs shader
   program <- lowerExportedShader spec shader
-  writeRequestedIR defs program
-  output <- writeFragmentOutput defs outputDir outfile program
+  session <- getSession {c = defs}
+  let requestedDirectives = directives session
+  width <- fromEither (selectedFloatWidth requestedDirectives)
+  writeRequestedIR requestedDirectives width program
+  output <- writeFragmentOutput requestedDirectives width outputDir outfile program
   pure (Just output)
 
 public export
