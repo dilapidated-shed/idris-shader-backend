@@ -17,6 +17,8 @@ https://developer.nvidia.com/gpugems/gpugems2/copyright
 
 [Original summaries of all 48 chapters, with current-backend relevance](chapter-summaries.md)
 
+[Detailed Chapter 34 note: branch structure, predication, and `RSelect`](chapter-34-flow-control-and-rselect.md)
+
 The highest-value cluster for the current work is chapters 31–36 and 44–48:
 mapping computation to graphics-era hardware, control flow, reductions,
 optimization, numerical linear algebra, sorting/staged pair structure, and FFT
