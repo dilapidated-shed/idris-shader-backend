@@ -13,44 +13,14 @@ Live book/copyright page:
 
 https://developer.nvidia.com/gpugems/gpugems2/copyright
 
-## Chapters most useful here
+## Chapter notes
 
-These are live NVIDIA chapter pages. The descriptions below are our summaries.
+[Original summaries of all 48 chapters, with current-backend relevance](chapter-summaries.md)
 
-- Chapter 31, *Mapping Computational Concepts to GPUs*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-31-mapping-computational  
-  Maps ordinary computation onto the graphics-era stream/fragment model:
-  arithmetic intensity, gather/scatter, textures, render-to-texture, and
-  fragment processors.
-
-- Chapter 32, *Taking the Plunge into GPU Computing*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-32-taking-plunge-gpu  
-  Practical entry into GPGPU under the older graphics-pipeline programming
-  model.
-
-- Chapter 33, *Implementing Efficient Parallel Data Structures on GPUs*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-33-implementing-efficient  
-  Data layout and parallel structures under GPU memory/access constraints.
-
-- Chapter 34, *GPU Flow-Control Idioms*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-34-gpu-flow-control-idioms  
-  Especially relevant to the backend's control-flow/lowering work: how
-  branching and looping interact with GPU execution.
-
-- Chapter 35, *GPU Program Optimization*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-35-gpu-program-optimization  
-  Organizing computation and data movement so the GPU does useful work rather
-  than paying avoidable transfer or pipeline costs.
-
-- Chapter 36, *Stream Reduction Operations for GPGPU Applications*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-36-stream-reduction  
-  Reduction as a multi-pass data-parallel primitive.
-
-- Chapter 44, *A GPU Framework for Solving Systems of Linear Equations*  
-  https://developer.nvidia.com/gpugems/gpugems2/part-vi-simulation-and-numerical-algorithms/chapter-44-gpu-framework-solving  
-  The most directly numerical chapter in this group: GPU representations of
-  vectors/matrices, matrix-vector operations, and iterative linear solving
-  through fragment-program passes.
+The highest-value cluster for the current work is chapters 31–36 and 44–48:
+mapping computation to graphics-era hardware, control flow, reductions,
+optimization, numerical linear algebra, sorting/staged pair structure, and FFT
+butterflies.
 
 ## Bibliographies and acknowledgments
 
