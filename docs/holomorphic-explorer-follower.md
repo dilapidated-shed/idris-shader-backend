@@ -13,6 +13,10 @@ This shader backend may eventually lower and evaluate an already-approved descri
 
 The in-flight general complex/projective arithmetic effort in Idriç owns the shared numerical semantics. Shader support should follow its versioned corpus rather than creating another complex type hierarchy for this application.
 
+The wider cross-repository map tying those semantics to O/SO, Givens,
+Householder, polar complex lowering, DFT/FFT, RoPE, and GPU rotation research is:
+https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/_/examples/unified-higher-mathematics/ROTATION-COMPLEX-PROJECTIVE-CROSS-REFERENCES.md
+
 ## Exact handoff
 
 At a regular point of the explicit meromorphic divisor, a follower implementation evaluates the approved descriptor and applies
