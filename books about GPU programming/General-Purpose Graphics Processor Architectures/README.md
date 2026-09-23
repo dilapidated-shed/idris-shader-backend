@@ -29,3 +29,11 @@ can make two semantically equivalent lowerings behave very differently.
 This book therefore sits between language/compiler notes and CUDA programming
 texts: it helps explain *why* particular GPU programming idioms exist rather
 than treating them as arbitrary coding folklore.
+
+## Chapter map
+
+[Metadata-based map of all 5 chapters](chapter-map.md)
+
+These notes are explicitly based on public publisher/author metadata where the
+full commercial chapter text is not publicly hosted.
+
