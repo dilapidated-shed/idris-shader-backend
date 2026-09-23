@@ -52,6 +52,28 @@ control flow, bounded loops, reductions, RoPE/Givens-style pair rotations,
 fusion versus reordering, layout versus semantics, numerical width, and
 physical-target evidence.
 
+## Book-level summaries
+
+These are intentionally short and problem-driven rather than neutral publisher
+blurbs.
+
+- [GPU Gems](GPU%20Gems/book-summary.md)
+- [GPU Gems 2](GPU%20Gems%202/book-summary.md)
+- [GPU Gems 3](GPU%20Gems%203/book-summary.md)
+- [Programming Massively Parallel Processors, 5e](Programming%20Massively%20Parallel%20Processors/book-summary.md)
+- [Numerical Computations with GPUs](Numerical%20Computations%20with%20GPUs/book-summary.md)
+- [The CUDA Handbook v2.0](The%20CUDA%20Handbook/book-summary.md)
+- [OpenGL Shading Language, 3e](OpenGL%20Shading%20Language/book-summary.md)
+- [Graphics Shaders: Theory and Practice, 2e](Graphics%20Shaders%20-%20Theory%20and%20Practice/book-summary.md)
+- [General-Purpose Graphics Processor Architectures](General-Purpose%20Graphics%20Processor%20Architectures/book-summary.md)
+- [Direct3D ShaderX: Vertex and Pixel Shader Tips and Tricks](ShaderX%20and%20GPU%20Pro/Direct3D%20ShaderX%20-%20Vertex%20and%20Pixel%20Shader%20Tips%20and%20Tricks/book-summary.md)
+- [ShaderX2: Introductions and Tutorials with DirectX 9](ShaderX%20and%20GPU%20Pro/ShaderX2%20-%20Introductions%20and%20Tutorials%20with%20DirectX%209/book-summary.md)
+- [ShaderX2: Shader Programming Tips and Tricks with DirectX 9](ShaderX%20and%20GPU%20Pro/ShaderX2%20-%20Shader%20Programming%20Tips%20and%20Tricks%20with%20DirectX%209/book-summary.md)
+
+Each summary ends by thanking the authors/editors/contributors. These books are
+being mined because people took the trouble to write down hard-won GPU,
+compiler, numerical, and rendering knowledge in a form we can still inspect.
+
 ## Live-hosted books
 
 These have chapter-level coverage now:
