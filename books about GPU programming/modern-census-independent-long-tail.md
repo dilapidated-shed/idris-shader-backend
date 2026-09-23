@@ -3,8 +3,9 @@
 Observed and checked: 2026-09-23.
 
 This file is part of the [2016-present census](modern-census-2016-present.md).
-It exists because publisher-only searching misses a surprising amount of the
-GPU-programming book market.
+It contains independent and long-tail titles **not already listed in the main
+chronological table**. Publisher-only searching misses a surprising amount of
+the GPU-programming book market.
 
 There is **no quality threshold** here. A title belongs when it is a real,
 identifiable English-language book or completed digital book whose central
@@ -20,13 +21,7 @@ Format variants are not separate books. Substantially revised editions are.
 | 2017 | *Introduction to Computer Graphics and the Vulkan API*, 1e | Benjamin Kenwright | Vulkan / shaders | CreateSpace; 226 pp.; ISBN 9781548616175 |
 | 2017 | *Introduction to Computer Graphics and the Vulkan API*, 2e | Benjamin Kenwright | Vulkan / compute shaders | CreateSpace; 268 pp.; ISBN 9781979584104 |
 | 2018 | *Introduction to Computer Graphics and the Vulkan API*, 3e | Benjamin Kenwright | Vulkan / shaders | CreateSpace; 284 pp.; ISBN 9781729529188 |
-| 2021 | *Practical WebGPU Graphics* | Jack Xu | WebGPU / WGSL / compute | UniCAD; 445 pp.; ISBN 9798725062625; [author record](https://drxudotnet.com/) |
-| 2022 | *Practical GPU Graphics with wgpu and Rust* | Jack Xu | wgpu / WGSL / Rust | ISBN 9798404949377; [author record](https://drxudotnet.com/Home/BookDetails?bookId=56) |
-| 2022 | *Practical GPU Graphics with wgpu-py and Python* | Jack Xu | wgpu-py / WGSL / Python | ISBN 9798832139647; [author index](https://drxudotnet.com/) |
 | 2022 | *WebGPU (Graphics and Compute) API in 20 Minutes* | Benjamin Kenwright | WebGPU / WGSL | independently published 2022-06-24; short-form book |
-| 2023 | *WebGPU by Examples* | Jack Xu | WebGPU / WGSL | ISBN 9798394130496; [author record](https://drxudotnet.com/Home/BookDetails?bookId=58) |
-| 2023 | *WGPU by Examples* | Jack Xu | wgpu / WGSL / Rust | ISBN 9798864220252; [author record](https://drxudotnet.com/) |
-| 2023 | *WebGPU and Compute Shaders for Real-Time Graphics* | Jack Xu | WebGPU / compute shaders | published 2023-08-23; Kindle ASIN B0CGK7H9BF |
 | 2023 | *Graphics programming on macOS using C++* | Filip Wasil | Vulkan / MoltenVK / Metal | completed Leanpub book; [publisher page](https://leanpub.com/graphicsonmacoscplusplus) |
 | 2023 | *Rust wgpu for 3D Surfaces* | Jack Xu | wgpu / WGSL / Rust | published 2023-10-24; focused application book |
 | 2023 | *Rust wgpu for Complex Function Visualization* | Jack Xu | wgpu / compute shaders / Rust | published 2023-11-01; focused application book |
@@ -44,7 +39,6 @@ Format variants are not separate books. Substantially revised editions are.
 | 2025 | *WebGPU+WGSL/Compute/Graphics All-In-One* | Benjamin Kenwright | WebGPU / WGSL | 188 pp.; published 2025-04-14; ISBN 9798319410108 |
 | 2025 | *WebGL+GLSL/Graphics/Compute All-in-One* | Benjamin Kenwright | WebGL / GLSL / GPGPU | 203 pp.; published 2025-06-04; ISBN 9798286815173 |
 | 2025 | *DirectX+HLSL/Graphics/Compute All-in-One* | Benjamin Kenwright | Direct3D / HLSL / compute | independently published 2025-06-25; 232 pp.; ISBN 9798289659729 |
-| 2025 | *Programming with wgpu in Rust: The Complete Guide for Developers and Engineers* | William Smith | wgpu / WGSL / Rust | HiTeX Press; published 2025-08-20 |
 | 2025 | *Pervasive WebGPU & WGSL: Graphics & Compute* | Benjamin Kenwright | WebGPU / WGSL | 339 pp.; published 2025-08-21; ISBN 9798299175356 |
 | 2025 | *Programming with wgpu in Rust: Master GPU Programming, Real-Time Rendering, 3D Graphics, Compute Pipelines, and Cross-Platform Game Development* | Thomas D. Ullrich | wgpu / WGSL / Rust | independently published 2025-10-19 |
 | 2026 | *Practical GPU Programming* | GitforGits / Asian Publishing House | CUDA / CuPy / PyCUDA | completed Leanpub book; published/updated 2026-01-17 |
