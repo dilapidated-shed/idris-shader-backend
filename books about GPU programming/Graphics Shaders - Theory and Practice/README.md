@@ -28,3 +28,11 @@ are not an isolated arithmetic language. They live inside a staged pipeline
 with interfaces, interpolation, and host-provided state. Examples that make
 those boundaries explicit are useful when deciding what belongs in source
 semantics, backend IR, generated GLSL, or the host renderer.
+
+## Chapter map
+
+[Metadata-based map of all 16 chapters](chapter-map.md)
+
+These notes are explicitly based on public publisher/author metadata where the
+full commercial chapter text is not publicly hosted.
+

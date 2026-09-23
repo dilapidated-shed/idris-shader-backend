@@ -40,3 +40,11 @@ The Elsevier page exposes current edition metadata and a detailed table of
 contents. No separately licensed public bibliography for the complete fifth
 edition was located in this check. Do not substitute unofficial copies for the
 book.
+
+## Chapter map
+
+[Metadata-based map of all 25 fifth-edition chapters](chapter-map.md)
+
+These notes are explicitly based on public publisher/author metadata where the
+full commercial chapter text is not publicly hosted.
+

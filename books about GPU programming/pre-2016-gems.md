@@ -65,8 +65,10 @@ branching or scatter writes.
 
 See the sibling directories for:
 
-- [GPU Gems 2](GPU%20Gems%202/README.md)
-- [The CUDA Handbook](The%20CUDA%20Handbook/README.md)
+- [GPU Gems — all 42 chapters](GPU%20Gems/chapter-summaries.md)
+- [GPU Gems 2 — all 48 chapters](GPU%20Gems%202/chapter-summaries.md)
+- [GPU Gems 3 — all 41 chapters](GPU%20Gems%203/chapter-summaries.md)
+- [The CUDA Handbook — all 16 live v2.0 chapters](The%20CUDA%20Handbook/chapter-summaries.md)
 - [OpenGL Shading Language](OpenGL%20Shading%20Language/README.md)
 - [Graphics Shaders: Theory and Practice](Graphics%20Shaders%20-%20Theory%20and%20Practice/README.md)
 - [ShaderX / GPU Pro](ShaderX%20and%20GPU%20Pro/README.md)
