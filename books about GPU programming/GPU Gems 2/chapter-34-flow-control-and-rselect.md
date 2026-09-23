@@ -141,8 +141,10 @@ The lesson is not “never predicate.” It is:
 ## Cross-compiler relevance
 
 This is not GPU-only. Any compiler can destroy useful intent by replacing
-control structure with an eager value graph too early. The corresponding Idric
-compiler note should be read together with this one.
+control structure with an eager value graph too early.
+
+See the Idric compiler note:
+https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/notes/control-flow-predication.md
 
 ## References
 
