@@ -6,6 +6,9 @@ import Shader.Source
 
 ||| Genuine two-dimensional Givens rotation.
 |||
+||| Cross-repository mathematical/type/lowering index:
+||| https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/_/examples/unified-higher-mathematics/ROTATION-COMPLEX-PROJECTIVE-CROSS-REFERENCES.md
+|||
 ||| For input (a,b), choose c=a/r and s=b/r and apply
 |||
 |||   [ c  s]

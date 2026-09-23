@@ -35,3 +35,15 @@ without destroying useful mathematical structure too early.
 Use the Springer page for the chapter list, abstracts, DOI metadata, and
 legitimate chapter access. No independently licensed whole-book mirror or
 separate freely licensed bibliography was located during this check.
+
+## Chapter map
+
+[Metadata-based map of all 18 chapters](chapter-map.md)
+
+These notes are explicitly based on public publisher/author metadata where the
+full commercial chapter text is not publicly hosted.
+
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+

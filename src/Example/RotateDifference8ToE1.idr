@@ -7,6 +7,9 @@ import Shader.Source
 ||| Subtract two 8D vectors (stored as two vec4 chunks), then map the
 ||| difference to ||a-b|| e1 with an orientation-preserving orthogonal map.
 |||
+||| Cross-repository mathematical/type/lowering index:
+||| https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/_/examples/unified-higher-mathematics/ROTATION-COMPLEX-PROJECTIVE-CROSS-REFERENCES.md
+|||
 ||| For a non-degenerate difference, the first Householder reflection sends
 ||| d to ||d||e1.  A fixed reflection that flips e2 leaves ||d||e1 unchanged;
 ||| composing the two reflections has determinant +1, so the composition is a

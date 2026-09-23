@@ -31,3 +31,15 @@ The useful comparison is between:
 4. what the physical GPU actually executes.
 
 A target-language reference helps keep those layers distinct.
+
+## Chapter map
+
+[Metadata-based map of all 20 chapters](chapter-map.md)
+
+These notes are explicitly based on public publisher/author metadata where the
+full commercial chapter text is not publicly hosted.
+
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+

@@ -1,40 +1,47 @@
 # The CUDA Handbook
 
 Nicholas Wilt, *The CUDA Handbook: A Comprehensive Guide to GPU Programming*,
-second edition, Addison-Wesley/InformIT, 2020.
+second edition / living v2.0.
 
 Publisher page:
 
 https://www.informit.com/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780134852836
 
-Author site:
+Author-hosted living chapters:
 
-https://www.cudahandbook.com/
+https://www.cudahandbook.com/book/
 
 ## Rights status
 
-The book is commercial and is not mirrored here.
+The printed/e-book edition is commercial. The author currently hosts the living
+v2.0 chapter text publicly as HTML, so it can be read and summarized here, but
+no book-level redistribution license was established. We link rather than
+mirror the prose.
 
-The companion source code is a separate case. The author's site states that the
-code is offered under the two-clause BSD license and identifies the public
-repository:
+[Original summaries of all 16 live chapters](chapter-summaries.md)
+
+## Companion source code
+
+The author's site states that the companion code is offered under the two-clause
+BSD license and identifies the public repository:
 
 https://www.cudahandbook.com/book/appa
 
 https://github.com/ArchaeaSoftware/cudahandbook
 
-That makes the code a reusable companion source, subject to preserving its BSD
-notice. This catalog does not duplicate the entire companion repository merely
-to make another copy; when code from it is actually used or studied locally,
-record the exact upstream revision and license beside that material.
+The companion code is therefore a separate reusable source, subject to
+preserving its BSD notice. When code from it is actually used or studied
+locally, record the exact upstream revision and license beside that material.
 
 ## Why it belongs here
 
-The public book contents cover CUDA execution and hardware from a practical
-implementation angle: memory, kernel execution, streaming/concurrency,
-multiprocessors, multi-GPU work, texture/image mechanisms, reductions/scans,
-N-body computation, and image correlation.
+The living edition is unusually useful because it connects hardware evolution,
+memory, scheduling, emitted instructions, profiling, reductions, scan, N-body,
+normalized correlation and histograms/radix sort in one maintained text. Those
+chapters map directly onto the repository's control-flow, collective-operation,
+pairwise-structure and measurement questions.
 
-It complements *Programming Massively Parallel Processors*: one can compare the
-same low-level concerns through two different organizations rather than taking a
-single textbook's decomposition as the ontology of GPU programs.
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+
