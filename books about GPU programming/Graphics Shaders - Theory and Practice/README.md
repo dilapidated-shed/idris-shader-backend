@@ -36,3 +36,7 @@ semantics, backend IR, generated GLSL, or the host renderer.
 These notes are explicitly based on public publisher/author metadata where the
 full commercial chapter text is not publicly hosted.
 
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+
