@@ -40,3 +40,8 @@ memory, scheduling, emitted instructions, profiling, reductions, scan, N-body,
 normalized correlation and histograms/radix sort in one maintained text. Those
 chapters map directly onto the repository's control-flow, collective-operation,
 pairwise-structure and measurement questions.
+
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+

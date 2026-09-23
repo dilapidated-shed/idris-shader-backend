@@ -57,3 +57,22 @@ There are public GitHub collections containing ShaderX/GPU Pro companion code.
 Do not infer that an aggregator's top-level license relicenses every third-party
 file it collected. Prefer the publisher/author source plus the individual
 file/package license when deciding whether to vendor code.
+
+## Book-level takes
+
+- [Direct3D ShaderX: Vertex and Pixel Shader Tips and Tricks](Direct3D%20ShaderX%20-%20Vertex%20and%20Pixel%20Shader%20Tips%20and%20Tricks/book-summary.md)
+- [ShaderX2: Introductions and Tutorials with DirectX 9](ShaderX2%20-%20Introductions%20and%20Tutorials%20with%20DirectX%209/book-summary.md)
+- [ShaderX2: Shader Programming Tips and Tricks with DirectX 9](ShaderX2%20-%20Shader%20Programming%20Tips%20and%20Tricks%20with%20DirectX%209/book-summary.md)
+
+These summaries are deliberately selective: they ask what each volume still has
+to say about preserving control flow, bounded iteration, matrix/rotation
+structure, target representations, compiler lowering, and actual GPU evidence.
+
+## Thanks
+
+Thanks to **Wolfgang F. Engel** for editing and sustaining the ShaderX/GPU Pro
+line, to the many chapter authors for contributing concrete techniques, and to
+the people who arranged legitimate public access to the early volumes. That
+access is why these old target-specific books can still be mined instead of
+reduced to second-hand citations.
+
