@@ -4,9 +4,41 @@ Status: early research. No production lowering change is proposed here.
 
 This is separate from the structured-control-flow / `select` investigation. The useful question here is narrower:
 
-> What can DwarfStar teach us about representing and lowering large numbers of small rotations on GPUs?
+> What can DwarfStar teach us about target-level scheduling of large numbers of small rotations once the mathematical operation and representation boundary are already known?
 
-DwarfStar is not a shader compiler, so it is evidence about GPU implementation patterns rather than a model for this backend's architecture.
+DwarfStar is not a shader compiler, so it is evidence about GPU implementation patterns rather than a model for this backend's architecture. It is also **not evidence for choosing Cartesian complex representation**.
+
+The canonical cross-repository map is:
+https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/_/examples/unified-higher-mathematics/ROTATION-COMPLEX-PROJECTIVE-CROSS-REFERENCES.md
+
+That index connects this note to the Idriç O/SO and Complex/CP^n work, the ARM polar-complex experiment, the x86 complex/projective leader, the shader Givens/Householder fixtures, RoPE, and DFT/FFT twiddle multiplication.
+
+## Position relative to the complex/type-theoretic work
+
+The type-theoretic boundary comes first:
+
+```text
+Complex / C^n / CP^n / O(n) / SO(n)
+        |
+        | preserve mathematical structure
+        v
+representation / lowering decision
+        |
+        +--> polar complex: (magnitude, phase)
+        |
+        +--> explicit coordinate-pair rotation
+                  |
+                  +--> GPU lane/layout/fusion decisions
+                        ^
+                        |
+                 DwarfStar evidence lives here
+```
+
+For the holomorphic work, the polar complex experiment is especially important because multiplication by a unit complex number can become phase addition rather than a four-product Cartesian rotation. The same observation applies to DFT/FFT twiddle multiplication when values can remain in a suitable polar representation.
+
+DwarfStar becomes relevant only where the chosen representation or surrounding algorithm already exposes explicit coordinate pairs. Its RoPE kernels then provide useful evidence about lane ownership, pair layout, coefficient generation, precision, and fusion boundaries.
+
+This note should therefore remain a target-implementation research branch, not a source of semantic architecture for Complex.
 
 ## Why it is relevant
 
@@ -122,18 +154,18 @@ However, if later work *does* produce a chain of Givens rotations, DwarfStar bec
 
 ## Candidate compiler structure
 
-Not a proposed patch yet; this is a research sketch.
+Not a proposed patch yet; this is a research sketch. The important correction is that a plane-rotation node, if useful, belongs **below** the richer mathematical semantics rather than replacing them.
 
 ```text
-source mathematics
+Complex / SO(n) / other mathematical action
       |
-      |  preserve pair-transform structure
+      | preserve semantics
       v
-typed shader IR
+typed semantic IR
       |
-      +--> ordinary scalar/vector lowering
+      +--> polar-complex lowering when appropriate
       |
-      +--> plane-rotation lowering
+      +--> explicit plane-rotation lowering
                |
                +--> adjacent pair
                +--> split pair
@@ -194,8 +226,10 @@ The structured-IR work currently happening elsewhere is relevant here: if loweri
 
 ## Initial conclusion
 
-DwarfStar is relevant, but not because RoPE is the same mathematical problem as every rotation in this repository.
+DwarfStar may be relevant, but only at a lower layer than the canonical Complex/O/SO/CP^n semantics.
 
-It is useful because it gives several real examples of an implementation preserving a bank of 2D rotations all the way down to lane assignment, storage layout, coefficient generation, rounding, and dispatch fusion. It also supplies a counterexample to indiscriminate fusion.
+It gives several real examples of an implementation carrying explicit 2D rotations down to lane assignment, storage layout, coefficient generation, rounding, and dispatch fusion. It also supplies a counterexample to indiscriminate fusion.
 
-The next useful step is therefore not to copy a DwarfStar kernel. It is to inspect where this backend currently loses pair-rotation structure and determine whether retaining that structure creates an actual target-level opportunity.
+For the holomorphic path, first ask whether the complex operation can remain in a representation such as magnitude/phase and avoid expanding a unit-complex multiplication into coordinate arithmetic at all. Only when an explicit coordinate-pair rotation is actually the chosen lowering should DwarfStar guide scheduling or fusion.
+
+So the next useful step is not to copy a DwarfStar kernel. It is to keep this note available as implementation evidence while the semantic and representation work determines whether the same problem ever reaches that form.
