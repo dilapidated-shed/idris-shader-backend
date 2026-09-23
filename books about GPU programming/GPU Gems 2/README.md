@@ -33,3 +33,8 @@ formatted bibliography.
 For durable credit work, prefer extracting the underlying bibliographic facts
 into our own attribution records rather than copying the publisher's page
 wholesale.
+
+## Book-level summary
+
+[Our short problem-driven summary and thanks](book-summary.md)
+
