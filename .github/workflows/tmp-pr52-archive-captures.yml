@@ -1,0 +1,76 @@
+name: one-shot PR 52 archive captures
+
+on:
+  push:
+    branches:
+      - tmp/pr52-archive-captures-2026-09-23
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned archive.today CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone -q https://github.com/isomorphisms/archivetoday.git /tmp/archivetoday
+          cd /tmp/archivetoday
+          git checkout -q b1b27bd6f5e1e8f98e1bceb11705525b4ae15c98
+          test "$(git rev-parse HEAD)" = b1b27bd6f5e1e8f98e1bceb11705525b4ae15c98
+          npm ci --omit=dev
+          mkdir -p /tmp/archive-bin
+          cat >/tmp/archive-bin/archivetoday <<'SH'
+          #!/bin/sh
+          exec node /tmp/archivetoday/bin/index.js "$@"
+          SH
+          chmod +x /tmp/archive-bin/archivetoday
+          echo /tmp/archive-bin >> "$GITHUB_PATH"
+
+      - name: Capture every stable source to completion
+        shell: bash
+        run: |
+          set -u
+          input="books about GPU programming/archive-targets.tsv"
+          output="/tmp/archive-captures-2026-09-23.tsv"
+          tab=$(printf '\t')
+          printf 'title\tlive_url\tstatus\tsnapshot_url\tattempted_at\tnote\n' > "$output"
+
+          tail -n +2 "$input" |
+          while IFS="$tab" read -r title live_url rest; do
+            attempted_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            stdout=$(mktemp)
+            stderr=$(mktemp)
+
+            if timeout 180s archivetoday --renew --quiet "$live_url" >"$stdout" 2>"$stderr"; then
+              snapshot=$(tail -n 1 "$stdout" | tr -d '\r\n')
+              case "$snapshot" in
+                https://archive.*/*) status=captured ;;
+                *) status=invalid-output ;;
+              esac
+            else
+              rc=$?
+              snapshot=
+              if [ "$rc" -eq 124 ]; then status=timeout; else status=failed; fi
+            fi
+
+            note=$(tr '\t\r\n' '   ' < "$stderr" | cut -c1-500)
+            printf '%s\t%s\t%s\t%s\t%s\t%s\n'               "$title" "$live_url" "$status" "$snapshot" "$attempted_at" "$note" >> "$output"
+            rm -f "$stdout" "$stderr"
+            sleep 3
+          done
+
+          echo '---BEGIN ARCHIVE CAPTURES TSV---'
+          cat "$output"
+          echo '---END ARCHIVE CAPTURES TSV---'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr52-archive-captures-2026-09-23
+          path: /tmp/archive-captures-2026-09-23.tsv
+          if-no-files-found: error
