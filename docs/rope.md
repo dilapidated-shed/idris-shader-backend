@@ -5,6 +5,10 @@ coordinates before the attention dot product. This note describes the
 mathematics and the implementation surface without choosing whether this
 backend should implement it.
 
+Related Idriç O/SO, complex/projective, Givens/Householder, polar-complex,
+DFT/FFT, and target-lowering work is indexed at:
+https://github.com/isomorphisms/Idric/blob/Idri%C3%A7/_/examples/unified-higher-mathematics/ROTATION-COMPLEX-PROJECTIVE-CROSS-REFERENCES.md
+
 ## One two-dimensional pair
 
 For a pair `(x0, x1)` and angle `phi`:
