@@ -54,20 +54,26 @@ x' = x c - y s
 y' = x s + y c
 ```
 
-The DwarfStar research asks whether a narrow semantic two-coordinate rotation
-would let a target preserve useful pairing, lane assignment, coefficient reuse,
-rounding choices, and fusion opportunities.
+The books are read for mathematical and compiler structure; the
+[DwarfStar codebase study](DwarfStar%20(codebase%20study)/README.md) is read as
+a live implementation specimen showing how explicit pair rotations are
+scheduled once a representation has already been chosen.
 
-The important distinction is between:
+DwarfStar does not decide whether a higher-level complex operation should ever
+be expanded into this form. In particular, the holomorphic and polar-complex
+work may avoid such an expansion altogether.
+
+When an explicit coordinate-pair rotation really is present, keep distinct:
 
 - coefficient generation;
 - applying one plane rotation;
 - a bank/sequence of rotations;
-- an arbitrary orthogonal transform.
+- an arbitrary orthogonal transform;
+- target lane/layout/fusion choices.
 
-A book chapter about vector packing, FFT butterflies, trigonometric
-approximation, or data layout can therefore be relevant even if it never says
-"RoPE" or "Givens."
+A book chapter or codebase file about vector packing, FFT butterflies,
+trigonometric approximation, or data layout can therefore be relevant even if
+it never says "RoPE" or "Givens."
 
 ## 5. Fusion does not imply reordering
 

@@ -74,6 +74,19 @@ Each summary ends by thanking the authors/editors/contributors. These books are
 being mined because people took the trouble to write down hard-won GPU,
 compiler, numerical, and rendering knowledge in a form we can still inspect.
 
+## Codebase studies
+
+A substantial implementation can be read much like another technical book:
+file by file, with a source map, problem-driven notes, and explicit separation
+between what is specific to that project and what may transfer elsewhere.
+
+- [DwarfStar (source-code study)](DwarfStar%20(codebase%20study)/README.md) —
+  current Metal/CUDA/ROCm implementation material on pair rotations, layout,
+  precision, fusion boundaries, and related GPU execution choices.
+
+These entries are not promoted to architecture merely because they are useful
+research sources.
+
 ## Live-hosted books
 
 These have chapter-level coverage now:
