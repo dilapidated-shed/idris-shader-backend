@@ -18,6 +18,21 @@ archive links in [archive-targets.tsv](archive-targets.tsv) are lookups or
 capture-request entry points; they are not assertions that every external
 archive successfully captured the page.
 
+## Coverage policy
+
+The collection has two different catalog jobs:
+
+- [**2016-present modern census**](modern-census-2016-present.md): try to
+  enumerate every qualifying English-language book. A missing qualifying title
+  is a catalog bug, not an editorial choice.
+- [**pre-2016 gems**](pre-2016-gems.md): no completeness claim. Keep older
+  books and chapters only when their algorithms, explanations, constraints, or
+  historical transitions are still worth carrying forward.
+
+The year 2016 is a pragmatic completeness boundary. It catches the beginning of
+the Vulkan/explicit-API period and keeps the census tractable; it is not a claim
+that every GPU architecture changed discontinuously in that year.
+
 ## Summary evidence levels
 
 Chapter notes distinguish what was actually available:
