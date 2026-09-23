@@ -1,0 +1,35 @@
+name: Vendor open GPU books
+
+on:
+  push:
+    branches:
+      - books/open-gpu-programming-library
+    paths:
+      - .github/workflows/vendor-open-gpu-books.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirror openly licensed GPU-programming books
+        env:
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/vendor-open-gpu-books.sh
+
+      - name: Commit mirror
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/vendor-open-gpu-books.yml .github/scripts/vendor-open-gpu-books.sh
+          git add "books about GPU programming"
+          git status --short
+          git commit -m "docs: mirror open GPU programming books"
+          git push origin "HEAD:\${GITHUB_REF_NAME}"
