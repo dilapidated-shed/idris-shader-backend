@@ -18,44 +18,73 @@ archive links in [archive-targets.tsv](archive-targets.tsv) are lookups or
 capture-request entry points; they are not assertions that every external
 archive successfully captured the page.
 
-## Reading path
+## Summary evidence levels
 
-For the current backend work, a useful order is:
+Chapter notes distinguish what was actually available:
 
-1. *GPU Gems 2*, chapters 31–36, for the old but unusually explicit
-   fragment-pipeline model of general computation.
-2. *GPU Gems 2*, chapter 44, for matrix/vector representation and linear
-   solvers expressed through fragment passes.
-3. *Numerical Computations with GPUs* for numerical linear algebra and batched
-   numerical kernels.
-4. *Programming Massively Parallel Processors*, 5th ed., for modern CUDA
-   execution, memory hierarchy, tiling, reductions, scans, sparse work, and
-   multi-GPU material.
-5. *The CUDA Handbook* for a second CUDA-oriented implementation reference and
-   its openly licensed code companion.
-6. Selected *ShaderX* / *GPU Pro* material for shader-era implementation
-   patterns and historical constraints.
+- **live full text** — the chapter/book text is legitimately hosted by the
+  publisher or author; write an original chapter summary from that text;
+- **indexed live PDF** — the publisher/editor provides a legitimate PDF, but
+  the current reader cannot ingest the whole file at once; mark chapters
+  `indexed-text` when substantial chapter text was recovered and
+  `TOC-guided` otherwise;
+- **publisher metadata** — only a TOC/abstract/sample is public; write a
+  `chapter-map.md` and label it metadata-based rather than pretending the
+  chapter was read.
 
-## Catalog
+All notes are read through [problem-lens.md](problem-lens.md): structured
+control flow, bounded loops, reductions, RoPE/Givens-style pair rotations,
+fusion versus reordering, layout versus semantics, numerical width, and
+physical-target evidence.
 
-| Book / series | Rights status used here | What is kept here |
+## Live-hosted books
+
+These have chapter-level coverage now:
+
+| Book | Hosting | Notes |
 | --- | --- | --- |
-| [GPU Gems 2](GPU%20Gems%202/README.md) | free to read online; book is all-rights-reserved | chapter links and our notes |
-| [Programming Massively Parallel Processors](Programming%20Massively%20Parallel%20Processors/README.md) | commercial | publisher metadata, public TOC notes |
-| [Numerical Computations with GPUs](Numerical%20Computations%20with%20GPUs/README.md) | commercial | Springer metadata and topic notes |
-| [The CUDA Handbook](The%20CUDA%20Handbook/README.md) | commercial book; companion code separately BSD-licensed by the author | book links plus companion-code provenance |
-| [OpenGL Shading Language](OpenGL%20Shading%20Language/README.md) | commercial | public TOC/sample links and target-language notes |
-| [Graphics Shaders: Theory and Practice](Graphics%20Shaders%20-%20Theory%20and%20Practice/README.md) | commercial | public TOC and example-code links |
-| [ShaderX / GPU Pro](ShaderX%20and%20GPU%20Pro/README.md) | commercial/copyrighted books; some volumes are free downloads | legal distinction, live links, selected relevance |
-| [General-Purpose Graphics Processor Architectures](General-Purpose%20Graphics%20Processor%20Architectures/README.md) | commercial | Springer/author links and architecture notes |
+| [GPU Gems](GPU%20Gems/chapter-summaries.md) | complete NVIDIA HTML | all 42 chapters |
+| [GPU Gems 2](GPU%20Gems%202/chapter-summaries.md) | complete NVIDIA HTML | all 48 chapters |
+| [GPU Gems 3](GPU%20Gems%203/chapter-summaries.md) | complete NVIDIA HTML | all 41 chapters |
+| [The CUDA Handbook v2.0](The%20CUDA%20Handbook/chapter-summaries.md) | author-hosted living HTML | all 16 chapters |
+| [Direct3D ShaderX: Vertex and Pixel Shader Tips and Tricks](ShaderX%20and%20GPU%20Pro/Direct3D%20ShaderX%20-%20Vertex%20and%20Pixel%20Shader%20Tips%20and%20Tricks/chapter-map.md) | legitimate free PDF | complete chapter map; indexed/TOC evidence marked |
+| [ShaderX2: Introductions and Tutorials with DirectX 9](ShaderX%20and%20GPU%20Pro/ShaderX2%20-%20Introductions%20and%20Tutorials%20with%20DirectX%209/chapter-summaries.md) | legitimate free PDF | all 8 chapters summarized from readable text |
+| [ShaderX2: Shader Programming Tips and Tricks with DirectX 9](ShaderX%20and%20GPU%20Pro/ShaderX2%20-%20Shader%20Programming%20Tips%20and%20Tricks%20with%20DirectX%209/chapter-map.md) | legitimate free PDF | complete chapter map; indexed/TOC evidence marked |
+
+## Commercial / metadata-based chapter maps
+
+| Book | Rights status used here | Notes |
+| --- | --- | --- |
+| [Programming Massively Parallel Processors, 5e](Programming%20Massively%20Parallel%20Processors/chapter-map.md) | commercial | all 25 publisher-listed chapters mapped |
+| [Numerical Computations with GPUs](Numerical%20Computations%20with%20GPUs/chapter-map.md) | commercial | all 18 chapters mapped |
+| [OpenGL Shading Language, 3e](OpenGL%20Shading%20Language/chapter-map.md) | commercial | all 20 chapters mapped |
+| [Graphics Shaders: Theory and Practice, 2e](Graphics%20Shaders%20-%20Theory%20and%20Practice/chapter-map.md) | commercial | all 16 chapters mapped |
+| [General-Purpose Graphics Processor Architectures](General-Purpose%20Graphics%20Processor%20Architectures/chapter-map.md) | commercial | all 5 chapters mapped |
+| [ShaderX / GPU Pro](ShaderX%20and%20GPU%20Pro/README.md) | commercial/copyrighted series; some early volumes free to read/download | series provenance and live-volume notes |
+
+## Reading path for the current backend problems
+
+1. *GPU Gems 2* **34** (flow-control idioms), **36** (reductions), **44**
+   (linear systems), **48** (FFT).
+2. *The CUDA Handbook* **7–8** (execution/SIMT), **12–13**
+   (reduction/scan), **14–15** (pairwise/batched numerical structure).
+3. *GPU Gems 3* **32**, **39–41** (reduction/scan, coefficient recurrence,
+   variable-output computation).
+4. *Numerical Computations with GPUs* **4**, **16–18** (QR/Givens, FFT,
+   localized N-body).
+5. *PMPP* **10–11**, **15–18**, **23** (collectives, sparse/irregular work,
+   deep learning, matrix multiplication).
+6. ShaderX/ShaderX2 compiler, matrix, lookup-table, bounded-iteration and
+   shader-abstraction chapters.
+7. *GPU Gems* **32**, **37–38**, **42** (interfaces, GPGPU toolkit, iterative
+   solvers/simulation, Jacobian-based deformers).
 
 ## Mirroring rule
 
-"Free on the web" is not enough. For example, NVIDIA hosts the complete
-*GPU Gems 2* online, but its copyright page still reserves reproduction rights.
-Likewise, some early *ShaderX* volumes are offered as free downloads by
-arrangement with the editor and publisher, but that does not by itself grant us
-a redistribution license.
+"Free on the web" is not enough. NVIDIA hosts the *GPU Gems* books online but
+their copyright pages reserve reproduction rights. The early *ShaderX* PDFs are
+legitimate free downloads by arrangement with the editor/publisher, but that
+does not by itself grant redistribution rights.
 
 If a later check finds an explicit book-level redistribution license, add the
 licensed files under that book's directory together with the exact license,
