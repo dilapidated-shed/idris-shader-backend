@@ -62,7 +62,7 @@ compatible redistribution license.
 | 2018 | *GPU Parallel Program Development Using CUDA* | Tolga Soyata | CUDA / architecture / optimization | [Routledge](https://www.routledge.com/GPU-Parallel-Program-Development-Using-CUDA/Soyata/p/book/9781498750752) |
 | 2018 | *General-Purpose Graphics Processor Architectures* | Tor M. Aamodt; Wilson Wai Lun Fung; Timothy G. Rogers | GPU architecture | programmer-relevant architecture reference; [Springer](https://link.springer.com/book/10.1007/978-3-031-01759-9) |
 | 2018 | *Hands-On GPU Programming with Python and CUDA* | Brian Tuomanen | CUDA / PyCUDA / Python | 310 pp.; [Packt](https://www.packtpub.com/en-us/product/hands-on-gpu-programming-with-python-and-cuda-9781788995221) |
-| 2018 | *OpenGL 4 Shading Language Cookbook*, 3e | David Wolff | GLSL / compute shaders | [Packt](https://www.packtpub.com/en-us/product/opengl-4-shading-language-cookbook-9781789340662) |
+| 2018 | *OpenGL 4 Shading Language Cookbook*, 3e | David Wolff | GLSL / compute shaders | [Packt](https://www.packtpub.com/en-us/product/opengl-4-shading-language-cookbook-9781789342253) |
 | 2018 | *Hands-On GPU-Accelerated Computer Vision with OpenCV and CUDA* | Bhaumik Vaidya | CUDA / OpenCV / PyCUDA | applied book with direct CUDA programming |
 | 2018 | *Metal by Tutorials*, 1e | Caroline Begbie; Marius Horga | Metal / shaders / compute | full release 2018-10-08; later editions below; [Kodeco](https://www.kodeco.com/books/metal-by-tutorials/v5.0) |
 | 2018 | *Real-Time 3D Graphics with WebGL 2*, 2e | Farhad Ghayour; Diego Cantor | WebGL 2 / GLSL | 500 pp.; [Packt](https://www.packtpub.com/en-us/product/real-time-3d-graphics-with-webgl-2-9781788837873) |
