@@ -30,21 +30,22 @@ glslType (TArray n elementTy) = do
   rendered <- arrayElementType elementTy
   Right (rendered ++ "[" ++ show n ++ "]")
 
-arrayElementSemanticType : ArrayElementTy -> String
-arrayElementSemanticType AFloat = "F32"
-arrayElementSemanticType ABool = "Bool"
-arrayElementSemanticType AInt = "Int"
-arrayElementSemanticType (AVec n) = "F32x" ++ show n
+arrayElementSemanticType : FloatWidth -> ArrayElementTy -> String
+arrayElementSemanticType width AFloat = semanticScalarType width
+arrayElementSemanticType _ ABool = "Bool"
+arrayElementSemanticType _ AInt = "Int"
+arrayElementSemanticType width (AVec n) = semanticVectorType width n
 
 ||| Semantic type spelling used in the checked IR dump. This deliberately does
-||| not reuse GLSL's width-erasing `float` / `vecN` spelling.
-semanticType : ValueTy -> String
-semanticType TFloat = "F32"
-semanticType TBool = "Bool"
-semanticType TInt = "Int"
-semanticType (TVec n) = "F32x" ++ show n
-semanticType (TArray n elementTy) =
-  arrayElementSemanticType elementTy ++ "[" ++ show n ++ "]"
+||| not reuse GLSL's width-erasing `float` / `vecN` spelling. A compilation has
+||| one requested float width until mixed-width IR is introduced.
+semanticType : FloatWidth -> ValueTy -> String
+semanticType width TFloat = semanticScalarType width
+semanticType _ TBool = "Bool"
+semanticType _ TInt = "Int"
+semanticType width (TVec n) = semanticVectorType width n
+semanticType width (TArray n elementTy) =
+  arrayElementSemanticType width elementTy ++ "[" ++ show n ++ "]"
 
 floatLiteral : Double -> String
 floatLiteral value =
@@ -173,40 +174,40 @@ declaration (MkInterfaceVar name Uniform ty) = do
   rendered <- glslType ty
   Right ("uniform " ++ rendered ++ " " ++ name ++ ";")
 
-dumpInterface : InterfaceVar -> Either String String
-dumpInterface (MkInterfaceVar name storage ty) =
+dumpInterface : FloatWidth -> InterfaceVar -> Either String String
+dumpInterface width (MkInterfaceVar name storage ty) =
   let storageText = case storage of
                          FragmentInput => "in"
                          Uniform => "uniform"
-   in Right (name ++ " : " ++ storageText ++ " " ++ semanticType ty)
+   in Right (name ++ " : " ++ storageText ++ " " ++ semanticType width ty)
 
-dumpBindingAt : String -> Binding -> Either String String
-dumpBindingAt indent (MkBinding ty name rhs) =
-  Right (indent ++ name ++ " : " ++ semanticType ty ++ " = " ++ rhsText [] rhs)
+dumpBindingAt : FloatWidth -> String -> Binding -> Either String String
+dumpBindingAt width indent (MkBinding ty name rhs) =
+  Right (indent ++ name ++ " : " ++ semanticType width ty ++ " = " ++ rhsText [] rhs)
 
 mutual
-  dumpStatementAt : String -> Statement -> Either String (List String)
-  dumpStatementAt indent (SBinding binding) = do
-    line <- dumpBindingAt indent binding
+  dumpStatementAt : FloatWidth -> String -> Statement -> Either String (List String)
+  dumpStatementAt width indent (SBinding binding) = do
+    line <- dumpBindingAt width indent binding
     Right [line]
-  dumpStatementAt indent (SIf ty name condition thenStatements thenResult elseStatements elseResult) = do
-    thenLines <- dumpStatementsAt (indent ++ "  ") thenStatements
-    elseLines <- dumpStatementsAt (indent ++ "  ") elseStatements
-    let header = indent ++ name ++ " : " ++ semanticType ty ++
+  dumpStatementAt width indent (SIf ty name condition thenStatements thenResult elseStatements elseResult) = do
+    thenLines <- dumpStatementsAt width (indent ++ "  ") thenStatements
+    elseLines <- dumpStatementsAt width (indent ++ "  ") elseStatements
+    let header = indent ++ name ++ " : " ++ semanticType width ty ++
                  " = if " ++ operandText [] condition ++ " {"
         thenYield = indent ++ "  yield " ++ operandText [] thenResult
         elseHeader = indent ++ "} else {"
         elseYield = indent ++ "  yield " ++ operandText [] elseResult
         footer = indent ++ "}"
     Right (header :: thenLines ++ [thenYield, elseHeader] ++ elseLines ++ [elseYield, footer])
-  dumpStatementAt indent
+  dumpStatementAt width indent
                   (SBoundedLoop ty name indexName stateName maximumIterations activeBound
                                 initialState body bodyResult) = do
-    bodyLines <- dumpStatementsAt (indent ++ "  ") body
+    bodyLines <- dumpStatementsAt width (indent ++ "  ") body
     let activeText = case activeBound of
                           Nothing => ""
                           Just bound => " active < " ++ operandText [] bound
-        header = indent ++ name ++ " : " ++ semanticType ty ++
+        header = indent ++ name ++ " : " ++ semanticType width ty ++
                  " = bounded-loop " ++ indexName ++ " < " ++ show maximumIterations ++
                  activeText ++ " state " ++ stateName ++ " from " ++
                  operandText [] initialState ++ " {"
@@ -214,24 +215,32 @@ mutual
         footer = indent ++ "}"
     Right (header :: bodyLines ++ [bodyYield, footer])
 
-  dumpStatementsAt : String -> List Statement -> Either String (List String)
-  dumpStatementsAt _ [] = Right []
-  dumpStatementsAt indent (statement :: rest) = do
-    first <- dumpStatementAt indent statement
-    remaining <- dumpStatementsAt indent rest
+  dumpStatementsAt : FloatWidth -> String -> List Statement -> Either String (List String)
+  dumpStatementsAt _ _ [] = Right []
+  dumpStatementsAt width indent (statement :: rest) = do
+    first <- dumpStatementAt width indent statement
+    remaining <- dumpStatementsAt width indent rest
     Right (first ++ remaining)
 
 ||| A stable, human-readable dump of the typed structured IR before GLSL CSE.
-||| Floating-point widths are semantic names (F32/F32xN), not GLSL precision
-||| qualifiers. Source branches and bounded loops remain visible as structure.
+||| Floating-point widths are semantic names (F16/F32 and F16xN/F32xN), not
+||| GLSL precision qualifiers. Source branches and bounded loops remain visible
+||| as structure.
 public export
-dumpFragmentIR : FragmentProgram -> Either String String
-dumpFragmentIR program = do
-  arguments <- traverse dumpInterface (entryInterface (spec program))
-  body <- dumpStatementsAt "" (statements program)
-  let header = "fragment(" ++ concat (intersperse ", " arguments) ++ ") -> F32x4"
+dumpFragmentIRWithWidth : FloatWidth -> FragmentProgram -> Either String String
+dumpFragmentIRWithWidth width program = do
+  arguments <- traverse (dumpInterface width) (entryInterface (spec program))
+  body <- dumpStatementsAt width "" (statements program)
+  let header = "fragment(" ++ concat (intersperse ", " arguments) ++ ") -> " ++
+               semanticVectorType width 4
       output = "return " ++ operandText [] (result program)
   Right (unlines (header :: body ++ [output, ""]))
+
+||| Backward-compatible default dump: existing callers still observe F32 until
+||| they explicitly supply a whole-shader width.
+public export
+dumpFragmentIR : FragmentProgram -> Either String String
+dumpFragmentIR = dumpFragmentIRWithWidth defaultFloatWidth
 
 identityAlias : Aliases -> Rhs ty -> Maybe String
 identityAlias aliases (RSelect condition (OBool True) (OBool False)) =
