@@ -79,6 +79,7 @@ backend-test: backend
 	python3 tools/probe_bounded_loop_anf.py
 	python3 tools/check_backend.py
 	python3 tools/check_f16.py
+	python3 tools/check_wegert_precision.py
 	python3 tools/check_shared_factor_portrait.py
 	python3 tools/check_analytic_continuation.py
 	python3 tools/check_surfer_root_search.py
