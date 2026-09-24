@@ -131,7 +131,7 @@ record EntrySpec where
   entryInterface : List InterfaceVar
   resultTy : ValueTy
 
-||| A typed operand in the backend's linear shader IR.
+||| A typed operand in the backend's shader IR.
 public export
 data Operand : ValueTy -> Type where
   OLocal : String -> Operand ty
@@ -205,8 +205,8 @@ data Rhs : ValueTy -> Type where
   RBoolUnary : BoolUnary -> Operand TBool -> Rhs TBool
   RBoolBinary : BoolBinary -> Operand TBool -> Operand TBool -> Rhs TBool
   RIntToFloat : Operand TInt -> Rhs TFloat
-  RArrayIndex : Operand (TArray n elementTy) -> Operand TFloat ->
-                Rhs (arrayElementValueTy elementTy)
+  RArrayIndex : (capacity : Nat) -> Operand (TArray capacity elementTy) ->
+                Operand TFloat -> Rhs (arrayElementValueTy elementTy)
   RVec2 : Operand TFloat -> Operand TFloat -> Rhs (TVec 2)
   RVec3 : Operand TFloat -> Operand TFloat -> Operand TFloat -> Rhs (TVec 3)
   RVec4 : Operand TFloat -> Operand TFloat -> Operand TFloat ->
@@ -227,11 +227,33 @@ record Binding where
   bindingName : String
   bindingRhs : Rhs bindingTy
 
+||| Structured statements are part of the checked shader IR. Source control
+||| flow is preserved before target code generation instead of being flattened
+||| into eagerly computed values and rediscovered later.
+public export
+data Statement : Type where
+  SBinding : Binding -> Statement
+  SIf : (resultTy : ValueTy) ->
+        (resultName : String) ->
+        Operand TBool ->
+        List Statement -> Operand resultTy ->
+        List Statement -> Operand resultTy ->
+        Statement
+  SBoundedLoop : (stateTy : ValueTy) ->
+                 (resultName : String) ->
+                 (indexName : String) ->
+                 (stateName : String) ->
+                 (maximumIterations : Nat) ->
+                 Maybe (Operand TFloat) ->
+                 Operand stateTy ->
+                 List Statement -> Operand stateTy ->
+                 Statement
+
 public export
 record FragmentProgram where
   constructor MkFragmentProgram
   spec : EntrySpec
-  bindings : List Binding
+  statements : List Statement
   result : Operand (TVec 4)
 
 public export

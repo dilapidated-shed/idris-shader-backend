@@ -2,7 +2,6 @@ module Backend.GLSLES.Emit
 
 import Backend.GLSLES.FloatSemantics
 import Backend.GLSLES.IR
-import Backend.GLSLES.Structure
 import Data.Fin
 import Data.List
 import Data.String
@@ -132,7 +131,7 @@ rhsText aliases (RBoolBinary BAnd left right) =
 rhsText aliases (RBoolBinary BOr left right) =
   "(" ++ operandText aliases left ++ " || " ++ operandText aliases right ++ ")"
 rhsText aliases (RIntToFloat value) = "float(" ++ operandText aliases value ++ ")"
-rhsText aliases (RArrayIndex array index) =
+rhsText aliases (RArrayIndex _ array index) =
   operandText aliases array ++ "[int(" ++ operandText aliases index ++ ")]"
 rhsText aliases (RVec2 x y) =
   "vec2(" ++ operandText aliases x ++ ", " ++ operandText aliases y ++ ")"
@@ -182,18 +181,56 @@ dumpInterface width (MkInterfaceVar name storage ty) =
                          Uniform => "uniform"
    in Right (name ++ " : " ++ storageText ++ " " ++ semanticType width ty)
 
-dumpBinding : FloatWidth -> Binding -> Either String String
-dumpBinding width (MkBinding ty name rhs) =
-  Right (name ++ " : " ++ semanticType width ty ++ " = " ++ rhsText [] rhs)
+dumpBindingAt : FloatWidth -> String -> Binding -> Either String String
+dumpBindingAt width indent (MkBinding ty name rhs) =
+  Right (indent ++ name ++ " : " ++ semanticType width ty ++ " = " ++ rhsText [] rhs)
 
-||| A stable, human-readable dump of the typed IR before GLSL CSE and
-||| structured-control-flow recovery. Floating-point widths are semantic names
-||| (F16/F32 and F16xN/F32xN), not GLSL `float` precision qualifiers.
+mutual
+  dumpStatementAt : FloatWidth -> String -> Statement -> Either String (List String)
+  dumpStatementAt width indent (SBinding binding) = do
+    line <- dumpBindingAt width indent binding
+    Right [line]
+  dumpStatementAt width indent (SIf ty name condition thenStatements thenResult elseStatements elseResult) = do
+    thenLines <- dumpStatementsAt width (indent ++ "  ") thenStatements
+    elseLines <- dumpStatementsAt width (indent ++ "  ") elseStatements
+    let header = indent ++ name ++ " : " ++ semanticType width ty ++
+                 " = if " ++ operandText [] condition ++ " {"
+        thenYield = indent ++ "  yield " ++ operandText [] thenResult
+        elseHeader = indent ++ "} else {"
+        elseYield = indent ++ "  yield " ++ operandText [] elseResult
+        footer = indent ++ "}"
+    Right (header :: thenLines ++ [thenYield, elseHeader] ++ elseLines ++ [elseYield, footer])
+  dumpStatementAt width indent
+                  (SBoundedLoop ty name indexName stateName maximumIterations activeBound
+                                initialState body bodyResult) = do
+    bodyLines <- dumpStatementsAt width (indent ++ "  ") body
+    let activeText = case activeBound of
+                          Nothing => ""
+                          Just bound => " active < " ++ operandText [] bound
+        header = indent ++ name ++ " : " ++ semanticType width ty ++
+                 " = bounded-loop " ++ indexName ++ " < " ++ show maximumIterations ++
+                 activeText ++ " state " ++ stateName ++ " from " ++
+                 operandText [] initialState ++ " {"
+        bodyYield = indent ++ "  yield " ++ operandText [] bodyResult
+        footer = indent ++ "}"
+    Right (header :: bodyLines ++ [bodyYield, footer])
+
+  dumpStatementsAt : FloatWidth -> String -> List Statement -> Either String (List String)
+  dumpStatementsAt _ _ [] = Right []
+  dumpStatementsAt width indent (statement :: rest) = do
+    first <- dumpStatementAt width indent statement
+    remaining <- dumpStatementsAt width indent rest
+    Right (first ++ remaining)
+
+||| A stable, human-readable dump of the typed structured IR before GLSL CSE.
+||| Floating-point widths are semantic names (F16/F32 and F16xN/F32xN), not
+||| GLSL precision qualifiers. Source branches and bounded loops remain visible
+||| as structure.
 public export
 dumpFragmentIRWithWidth : FloatWidth -> FragmentProgram -> Either String String
 dumpFragmentIRWithWidth width program = do
   arguments <- traverse (dumpInterface width) (entryInterface (spec program))
-  body <- traverse (dumpBinding width) (bindings program)
+  body <- dumpStatementsAt width "" (statements program)
   let header = "fragment(" ++ concat (intersperse ", " arguments) ++ ") -> " ++
                semanticVectorType width 4
       output = "return " ++ operandText [] (result program)
@@ -210,83 +247,108 @@ identityAlias aliases (RSelect condition (OBool True) (OBool False)) =
   Just (operandText aliases condition)
 identityAlias _ _ = Nothing
 
-emitBindingsAt : String -> List Binding -> Aliases -> Cache -> List String ->
-                 Either String (Aliases, List String)
-emitBindingsAt _ [] aliases _ reversedLines = Right (aliases, reverse reversedLines)
-emitBindingsAt indent (MkBinding ty name rhs :: rest) aliases cache reversedLines =
-  case identityAlias aliases rhs of
-    Just existing => emitBindingsAt indent rest ((name, existing) :: aliases) cache reversedLines
-    Nothing => do
-      renderedTy <- glslType ty
-      let renderedRhs = rhsText aliases rhs
-          key = renderedTy ++ ":" ++ renderedRhs
-      case lookup key cache of
-        Just existing =>
-          emitBindingsAt indent rest ((name, existing) :: aliases) cache reversedLines
-        Nothing =>
-          let line = indent ++ renderedTy ++ " " ++ name ++ " = " ++ renderedRhs ++ ";"
-           in emitBindingsAt indent rest ((name, name) :: aliases)
-                                          ((key, name) :: cache) (line :: reversedLines)
-
 mutual
-  emitStatementBinding : Binding -> List Statement -> Aliases -> Cache -> List String ->
-                         Either String (Aliases, List String)
-  emitStatementBinding (MkBinding ty name rhs) rest aliases cache reversedLines =
+  emitStatementBindingAt : String -> Binding -> List Statement -> Aliases -> Cache -> List String ->
+                           Either String (Aliases, List String)
+  emitStatementBindingAt indent (MkBinding ty name rhs) rest aliases cache reversedLines =
     case identityAlias aliases rhs of
-      Just existing => emitStatements rest ((name, existing) :: aliases) cache reversedLines
+      Just existing => emitStatementsAt indent rest ((name, existing) :: aliases) cache reversedLines
       Nothing => do
         renderedTy <- glslType ty
         let renderedRhs = rhsText aliases rhs
             key = renderedTy ++ ":" ++ renderedRhs
         case lookup key cache of
-          Just existing => emitStatements rest ((name, existing) :: aliases) cache reversedLines
+          Just existing =>
+            emitStatementsAt indent rest ((name, existing) :: aliases) cache reversedLines
           Nothing =>
-            let line = "  " ++ renderedTy ++ " " ++ name ++ " = " ++ renderedRhs ++ ";"
-             in emitStatements rest ((name, name) :: aliases)
-                                    ((key, name) :: cache) (line :: reversedLines)
+            let line = indent ++ renderedTy ++ " " ++ name ++ " = " ++ renderedRhs ++ ";"
+             in emitStatementsAt indent rest ((name, name) :: aliases)
+                                  ((key, name) :: cache) (line :: reversedLines)
 
-  emitStructuredIf : StructuredIf -> List Statement -> Aliases -> Cache -> List String ->
-                     Either String (Aliases, List String)
-  emitStructuredIf branch rest aliases cache reversedLines = do
-    renderedTy <- glslType (branchResultTy branch)
+  emitStructuredIfAt : String -> ValueTy -> String -> Operand TBool ->
+                       List Statement -> Operand ty ->
+                       List Statement -> Operand ty ->
+                       List Statement -> Aliases -> Cache -> List String ->
+                       Either String (Aliases, List String)
+  emitStructuredIfAt indent ty name condition
+                     thenStatements thenResult elseStatements elseResult
+                     rest aliases cache reversedLines = do
+    renderedTy <- glslType ty
     (thenAliases, thenLines) <-
-      emitBindingsAt "    " (thenBindings branch) aliases cache []
+      emitStatementsAt (indent ++ "  ") thenStatements aliases cache []
     (elseAliases, elseLines) <-
-      emitBindingsAt "    " (elseBindings branch) aliases cache []
-    let name = branchName branch
-        condition = operandText aliases (branchCondition branch)
-        thenValue = operandText thenAliases (thenResult branch)
-        elseValue = operandText elseAliases (elseResult branch)
+      emitStatementsAt (indent ++ "  ") elseStatements aliases cache []
+    let conditionText = operandText aliases condition
+        thenValue = operandText thenAliases thenResult
+        elseValue = operandText elseAliases elseResult
         block =
-          [ "  " ++ renderedTy ++ " " ++ name ++ ";"
-          , "  if (" ++ condition ++ ") {"
+          [ indent ++ renderedTy ++ " " ++ name ++ ";"
+          , indent ++ "if (" ++ conditionText ++ ") {"
           ] ++ thenLines ++
-          [ "    " ++ name ++ " = " ++ thenValue ++ ";"
-          , "  } else {"
+          [ indent ++ "  " ++ name ++ " = " ++ thenValue ++ ";"
+          , indent ++ "} else {"
           ] ++ elseLines ++
-          [ "    " ++ name ++ " = " ++ elseValue ++ ";"
-          , "  }"
+          [ indent ++ "  " ++ name ++ " = " ++ elseValue ++ ";"
+          , indent ++ "}"
           ]
-    emitStatements rest ((name, name) :: aliases) cache
-                   (reverse block ++ reversedLines)
+    emitStatementsAt indent rest ((name, name) :: aliases) cache
+                     (reverse block ++ reversedLines)
 
-  emitStatements : List Statement -> Aliases -> Cache -> List String ->
-                   Either String (Aliases, List String)
-  emitStatements [] aliases _ reversedLines = Right (aliases, reverse reversedLines)
-  emitStatements (SBinding binding :: rest) aliases cache reversedLines =
-    emitStatementBinding binding rest aliases cache reversedLines
-  emitStatements (SIf branch :: rest) aliases cache reversedLines =
-    emitStructuredIf branch rest aliases cache reversedLines
+  emitBoundedLoopAt : String -> ValueTy -> String -> String -> String -> Nat ->
+                      Maybe (Operand TFloat) -> Operand ty ->
+                      List Statement -> Operand ty ->
+                      List Statement -> Aliases -> Cache -> List String ->
+                      Either String (Aliases, List String)
+  emitBoundedLoopAt indent ty name indexName stateName maximumIterations activeBound
+                    initialState body bodyResult rest aliases cache reversedLines = do
+    renderedTy <- glslType ty
+    let rawIndexName = name ++ "_index"
+        loopAliases =
+          (indexName, "float(" ++ rawIndexName ++ ")") ::
+          (stateName, name) :: aliases
+    (bodyAliases, bodyLines) <-
+      emitStatementsAt (indent ++ "  ") body loopAliases cache []
+    let activeText = case activeBound of
+                          Nothing => ""
+                          Just bound =>
+                            " && float(" ++ rawIndexName ++ ") < " ++ operandText aliases bound
+        initialLine =
+          indent ++ renderedTy ++ " " ++ name ++ " = " ++
+          operandText aliases initialState ++ ";"
+        loopHeader =
+          indent ++ "for (int " ++ rawIndexName ++ " = 0; " ++ rawIndexName ++
+          " < " ++ show maximumIterations ++ activeText ++ "; ++" ++ rawIndexName ++ ") {"
+        updateLine = indent ++ "  " ++ name ++ " = " ++ operandText bodyAliases bodyResult ++ ";"
+        footer = indent ++ "}"
+        block = [initialLine, loopHeader] ++ bodyLines ++ [updateLine, footer]
+    emitStatementsAt indent rest ((name, name) :: aliases) cache
+                     (reverse block ++ reversedLines)
+
+  emitStatementsAt : String -> List Statement -> Aliases -> Cache -> List String ->
+                     Either String (Aliases, List String)
+  emitStatementsAt _ [] aliases _ reversedLines = Right (aliases, reverse reversedLines)
+  emitStatementsAt indent (SBinding binding :: rest) aliases cache reversedLines =
+    emitStatementBindingAt indent binding rest aliases cache reversedLines
+  emitStatementsAt indent (SIf ty name condition thenStatements thenResult elseStatements elseResult :: rest)
+                   aliases cache reversedLines =
+    emitStructuredIfAt indent ty name condition
+                       thenStatements thenResult elseStatements elseResult
+                       rest aliases cache reversedLines
+  emitStatementsAt indent
+                   (SBoundedLoop ty name indexName stateName maximumIterations activeBound
+                                 initialState body bodyResult :: rest)
+                   aliases cache reversedLines =
+    emitBoundedLoopAt indent ty name indexName stateName maximumIterations activeBound
+                      initialState body bodyResult rest aliases cache reversedLines
 
 ||| Emit deterministic GLSL ES 3.00 with an explicit default floating-point
-||| precision. Expensive pure branch-local computations are recovered into real
-||| GLSL control flow; cheap selects remain ternary expressions.
+||| precision. Structured source control flow is emitted directly from the
+||| checked IR; it is not reconstructed from an eager linear select graph.
 public export
 emitFragmentWithPrecision : ShaderPrecision -> FragmentProgram -> Either String String
 emitFragmentWithPrecision precision program = do
   declarations <- traverse declaration (entryInterface (spec program))
-  let statements = structureBindings (bindings program)
-  (aliases, body) <- emitStatements statements [] [] []
+  (aliases, body) <- emitStatementsAt "  " (statements program) [] [] []
   let output = operandText aliases (result program)
       source =
         [ "#version 300 es"

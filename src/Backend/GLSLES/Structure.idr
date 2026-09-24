@@ -5,23 +5,6 @@ import Data.List
 
 %default total
 
-||| A typed structured conditional recovered from the linear shader IR before
-||| GLSL emission. Branch-local bindings may be emitted inside real control
-||| flow instead of being evaluated eagerly before a ternary select.
-public export
-record StructuredIf where
-  constructor MkStructuredIf
-  branchResultTy : ValueTy
-  branchName : String
-  branchCondition : Operand TBool
-  thenBindings : List Binding
-  thenResult : Operand branchResultTy
-  elseBindings : List Binding
-  elseResult : Operand branchResultTy
-
-public export
-data Statement = SBinding Binding | SIf StructuredIf
-
 bindingNameOf : Binding -> String
 bindingNameOf (MkBinding _ name _) = name
 
@@ -38,7 +21,7 @@ rhsLocals (RComparison _ left right) = operandLocals left ++ operandLocals right
 rhsLocals (RBoolUnary _ value) = operandLocals value
 rhsLocals (RBoolBinary _ left right) = operandLocals left ++ operandLocals right
 rhsLocals (RIntToFloat value) = operandLocals value
-rhsLocals (RArrayIndex array index) = operandLocals array ++ operandLocals index
+rhsLocals (RArrayIndex _ array index) = operandLocals array ++ operandLocals index
 rhsLocals (RVec2 x y) = operandLocals x ++ operandLocals y
 rhsLocals (RVec3 x y z) = operandLocals x ++ operandLocals y ++ operandLocals z
 rhsLocals (RVec4 x y z w) = operandLocals x ++ operandLocals y ++ operandLocals z ++ operandLocals w
@@ -53,15 +36,25 @@ rhsLocals (RSelect condition whenTrue whenFalse) = operandLocals condition ++ op
 bindingLocals : Binding -> List String
 bindingLocals (MkBinding _ _ rhs) = rhsLocals rhs
 
-structuredLocals : StructuredIf -> List String
-structuredLocals branch =
-  operandLocals (branchCondition branch) ++
-  concatMap bindingLocals (thenBindings branch) ++ operandLocals (thenResult branch) ++
-  concatMap bindingLocals (elseBindings branch) ++ operandLocals (elseResult branch)
+without : List String -> List String -> List String
+without [] _ = []
+without (value :: rest) excluded = if elem value excluded then without rest excluded else value :: without rest excluded
 
+maybeOperandLocals : Maybe (Operand ty) -> List String
+maybeOperandLocals Nothing = []
+maybeOperandLocals (Just value) = operandLocals value
+
+covering
 statementLocals : Statement -> List String
 statementLocals (SBinding binding) = bindingLocals binding
-statementLocals (SIf branch) = structuredLocals branch
+statementLocals (SIf _ _ condition thenStatements thenResult elseStatements elseResult) =
+  operandLocals condition ++
+  concatMap statementLocals thenStatements ++ operandLocals thenResult ++
+  concatMap statementLocals elseStatements ++ operandLocals elseResult
+statementLocals (SBoundedLoop _ _ indexName stateName _ activeBound initialState body bodyResult) =
+  maybeOperandLocals activeBound ++ operandLocals initialState ++
+  without (concatMap statementLocals body ++ operandLocals bodyResult)
+          [indexName, stateName]
 
 unique : List String -> List String
 unique [] = []
@@ -72,8 +65,9 @@ addMissing [] existing = existing
 addMissing (value :: rest) existing =
   if elem value existing then addMissing rest existing else addMissing rest (value :: existing)
 
-||| Follow a set of result names backwards through the already-emitted linear
-||| prefix. Each statement is visited at most once for one dependency query.
+||| Follow a set of result names backwards through an already-emitted legacy
+||| linear prefix. This module is retained only for old RSelect producers while
+||| source cases migrate to first-class structured IR.
 dependencyScan : List Statement -> List String -> List String -> List String
 dependencyScan [] _ found = found
 dependencyScan (SBinding binding :: rest) wanted found =
@@ -81,16 +75,14 @@ dependencyScan (SBinding binding :: rest) wanted found =
   if elem name wanted
      then dependencyScan rest (addMissing (bindingLocals binding) wanted) (name :: found)
      else dependencyScan rest wanted found
-dependencyScan (SIf _ :: rest) wanted found = dependencyScan rest wanted found
+dependencyScan (SIf _ _ _ _ _ _ _ :: rest) wanted found = dependencyScan rest wanted found
+dependencyScan (SBoundedLoop _ _ _ _ _ _ _ _ _ :: rest) wanted found =
+  dependencyScan rest wanted found
 
 operandDependencies : List Statement -> Operand ty -> List String
 operandDependencies statements (OLocal name) = dependencyScan statements [name] []
 operandDependencies _ (OFloat _) = []
 operandDependencies _ (OBool _) = []
-
-without : List String -> List String -> List String
-without [] _ = []
-without (value :: rest) excluded = if elem value excluded then without rest excluded else value :: without rest excluded
 
 common : List String -> List String -> List String
 common [] _ = []
@@ -103,18 +95,22 @@ bindingsNamedInOrder reversedStatements wanted = collect (reverse reversedStatem
     collect [] = []
     collect (SBinding binding :: rest) =
       if elem (bindingNameOf binding) wanted then binding :: collect rest else collect rest
-    collect (SIf _ :: rest) = collect rest
+    collect (SIf _ _ _ _ _ _ _ :: rest) = collect rest
+    collect (SBoundedLoop _ _ _ _ _ _ _ _ _ :: rest) = collect rest
 
 removeNamed : List String -> List Statement -> List Statement
 removeNamed _ [] = []
 removeNamed names (SBinding binding :: rest) =
   if elem (bindingNameOf binding) names then removeNamed names rest else SBinding binding :: removeNamed names rest
-removeNamed names (statement@(SIf _) :: rest) = statement :: removeNamed names rest
+removeNamed names (statement@(SIf _ _ _ _ _ _ _) :: rest) = statement :: removeNamed names rest
+removeNamed names (statement@(SBoundedLoop _ _ _ _ _ _ _ _ _) :: rest) =
+  statement :: removeNamed names rest
 
 usesAny : List String -> List String -> Bool
 usesAny [] _ = False
 usesAny (name :: rest) wanted = elem name wanted || usesAny rest wanted
 
+covering
 statementsUse : List String -> List Statement -> Bool
 statementsUse _ [] = False
 statementsUse names (statement :: rest) = usesAny (statementLocals statement) names || statementsUse names rest
@@ -123,6 +119,7 @@ futureUses : List String -> List Binding -> Bool
 futureUses _ [] = False
 futureUses names (binding :: rest) = usesAny (bindingLocals binding) names || futureUses names rest
 
+covering
 externalRoots : List String -> List Statement -> List Binding -> List String
 externalRoots [] _ _ = []
 externalRoots (name :: rest) outside future =
@@ -151,6 +148,10 @@ bindingsCost (binding :: rest) = bindingCost binding + bindingsCost rest
 worthMoving : List Binding -> Bool
 worthMoving body = bindingsCost body >= 4
 
+asStatements : List Binding -> List Statement
+asStatements = map SBinding
+
+covering
 tryStructured : List Statement -> Binding -> List Binding -> Maybe (List Statement, Statement)
 tryStructured reversedStatements (MkBinding ty name (RSelect condition whenTrue whenFalse)) future =
   let thenDependencies = operandDependencies reversedStatements whenTrue
@@ -161,11 +162,6 @@ tryStructured reversedStatements (MkBinding ty name (RSelect condition whenTrue 
       allExclusive = unique (thenExclusive ++ elseExclusive)
       outsideExclusive = removeNamed allExclusive reversedStatements
       roots = externalRoots allExclusive outsideExclusive future
-      -- If a value must remain outside the branch, every dependency needed to
-      -- compute that value must remain outside too. Protecting the full closure
-      -- of externally used roots leaves only a closed, genuinely branch-local
-      -- subgraph to move. In the factor fold this keeps the common point outside
-      -- while allowing each factor's array lookup / atan / log chain to move.
       protected = dependencyScan reversedStatements roots []
       safeThen = without thenExclusive protected
       safeElse = without elseExclusive protected
@@ -183,9 +179,15 @@ tryStructured reversedStatements (MkBinding ty name (RSelect condition whenTrue 
                  then Nothing
                  else if futureUses claimed future
                          then Nothing
-                         else Just (remaining, SIf (MkStructuredIf ty name condition thenBody whenTrue elseBody whenFalse))
+                         else Just (
+                           remaining,
+                           SIf ty name condition
+                             (asStatements thenBody) whenTrue
+                             (asStatements elseBody) whenFalse
+                         )
 tryStructured _ _ _ = Nothing
 
+covering
 structure : List Statement -> List Binding -> List Statement
 structure reversedStatements [] = reverse reversedStatements
 structure reversedStatements (binding :: rest) =
@@ -193,9 +195,9 @@ structure reversedStatements (binding :: rest) =
     Nothing => structure (SBinding binding :: reversedStatements) rest
     Just (remaining, statement) => structure (statement :: remaining) rest
 
-||| Recover expensive branch-local work without a global shader-size cutoff.
-||| Cheap selections stay RSelect/ternary; expensive closed subgraphs move into
-||| real GLSL control flow.
+||| Transitional compatibility for legacy linear RSelect producers. New source
+||| control flow should already be represented by Statement before this point.
+covering
 public export
 structureBindings : List Binding -> List Statement
 structureBindings = structure []

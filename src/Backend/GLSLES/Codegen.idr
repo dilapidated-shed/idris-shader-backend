@@ -30,6 +30,11 @@ findANF _ [] = Nothing
 findANF wanted ((name, definition) :: rest) =
   if wanted == name then Just definition else findANF wanted rest
 
+renderANFDefinitions : List (Name, ANFDef) -> String
+renderANFDefinitions [] = ""
+renderANFDefinitions ((name, definition) :: rest) =
+  show name ++ " = " ++ show definition ++ "\n" ++ renderANFDefinitions rest
+
 entryType : {auto c : Ref Ctxt Defs} -> Name -> Core ClosedTerm
 entryType name = do
   context <- get Ctxt
@@ -134,9 +139,13 @@ compileGLSLES :
 compileGLSLES defs syn tmpDir outputDir term outfile = do
   shader <- prepareExportedShader defs term
   spec <- checkShaderInterface defs shader
-  program <- lowerExportedShader spec shader
   session <- getSession {c = defs}
   let requestedDirectives = directives session
+  case directiveValue "dump-anf=" requestedDirectives of
+    Nothing => pure ()
+    Just "" => backendError "dump-anf directive requires a path"
+    Just path => writeShader path (renderANFDefinitions (shaderDefinitions shader))
+  program <- lowerExportedShader spec shader
   width <- fromEither (selectedFloatWidth requestedDirectives)
   writeRequestedIR requestedDirectives width program
   output <- writeFragmentOutput requestedDirectives width outputDir outfile program
