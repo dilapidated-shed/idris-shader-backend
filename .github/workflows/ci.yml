@@ -58,8 +58,11 @@ jobs:
       - name: Record compiler version
         run: idris2 --version
 
-      - name: Run complete backend checks
-        run: make check
+      - name: Build shader backend for live follower
+        run: make backend
+
+      - name: Check live Holomorphic follower
+        run: python3 tools/check_holomorphic_live_field.py
 
       - name: Publish live Holomorphic follower shader
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -67,6 +70,9 @@ jobs:
           name: holomorphic-live-field-follower
           path: /tmp/holomorphic-live-field-artifact
           if-no-files-found: error
+
+      - name: Run complete backend checks
+        run: make check
 
       - name: Execute Android GLES framebuffer probes under Mesa
         run: |
