@@ -61,6 +61,13 @@ jobs:
       - name: Run complete backend checks
         run: make check
 
+      - name: Publish live Holomorphic follower shader
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: holomorphic-live-field-follower
+          path: /tmp/holomorphic-live-field-artifact
+          if-no-files-found: error
+
       - name: Execute Android GLES framebuffer probes under Mesa
         run: |
           make powervr-primitives GLES_LIBS=-lGLESv2
